@@ -1,5 +1,5 @@
 name: dart_coveralls
-version: 0.0.1
+version: 0.0.2
 author: Axel Christ <adracus@gmail.com>
 description: |-
   Pub package to calculate coverage, format it

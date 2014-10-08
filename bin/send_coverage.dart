@@ -29,16 +29,16 @@ void main(List<String> args) {
   if (results.rest.length != 1) return print(parser.getUsage());
   
   var lcov = new File(results.rest.single);
-  
   var directory = getDirectory(results["directory"]);
+  var token = getToken(results["token"]);
   
-  if (results["token"] != null) {
-    var f = CoverallsReport.getReportFromLcovFile(results["token"], lcov,
+  if (token != null) {
+    var f = CoverallsReport.getReportFromLcovFile(token, lcov,
         directory);
-    f.then((report) {
+    return f.then((report) {
       report.sendToCoveralls().then((_) => print("done"));
     });
   }
   
-  //print("done");
+  return print("No token specified or in environment");
 }

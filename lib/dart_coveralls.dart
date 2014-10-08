@@ -15,6 +15,15 @@ const String COVERALLS_ADDRESS = "https://coveralls.io/api/v1/jobs";
 
 
 
+String getToken(String candidate) {
+  if (candidate != null) return candidate;
+  if (Platform.environment.containsKey("REPO_TOKEN"))
+    return Platform.environment["REPO_TOKEN"];
+  return null;
+}
+
+
+
 String getSDKRootPath() {
   if (Platform.environment.containsKey("DART_SDK"))
     return join(absolute(normalize(Platform.environment["DART_SDK"])), "lib");

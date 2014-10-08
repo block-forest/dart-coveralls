@@ -22,13 +22,14 @@ main(List<String> args) {
   
   var pRoot = new Directory(res.rest.first);
   var file = new File(res.rest.last);
+  var token = getToken(res["token"]);
   
   if (!pRoot.existsSync()) return print("Root directory does not exist");
   if (!file.existsSync()) return print("Dart file does not exist");
-  if (res["token"] == null) return print("Please specify a repo token");
+  if (token == null) return print("Please specify a repo token");
   
   return getLcovInformation(int.parse(res["workers"]), file, pRoot).then((r) {
-    CoverallsReport.getReportFromLcovString(res["token"], r.toString(),
+    CoverallsReport.getReportFromLcovString(token, r.toString(),
         pRoot).then((report) {
       report.sendToCoveralls();
     });
