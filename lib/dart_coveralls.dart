@@ -7,11 +7,20 @@ import 'package:http/http.dart' show MultipartRequest, MultipartFile;
 import 'package:path/path.dart';
 import 'package:coverage/coverage.dart';
 import 'package:git/git.dart';
+import 'package:logging/logging.dart';
+
+export 'package:logging/logging.dart';
 
 part "git_data.dart";
 
+final Logger log = new Logger("dart_coveralls");
 
 const String COVERALLS_ADDRESS = "https://coveralls.io/api/v1/jobs";
+
+Directory getPackageRoot(String candidate) {
+  if (candidate == null || candidate == "") return Directory.current;
+  return new Directory(candidate);
+}
 
 
 
@@ -110,13 +119,17 @@ class SourceFile implements CoverallsReportable {
   
   static File _getSourceFile(String path, Directory packageRoot) {
     var file = new File(path);
-    if (file.existsSync()) return file;
+    if (file.existsSync()) {
+      log.info("ADDED FILE $path");
+      return file;
+    }
     var dirName = basename(packageRoot.path);
     var index = path.lastIndexOf(dirName);
     //path = path.substring(0, packageRoot.path.length) + "/packages" + 
     //    path.substring(packageRoot.path.length);
     path = path.substring(0, packageRoot.path.length) + "/lib" + 
         path.substring(packageRoot.path.length + dirName.length + 1);
+    log.info("ADDED FILE $path");
     return new File(path);
   }
   
@@ -270,7 +283,8 @@ class CoverallsReport implements CoverallsReportable {
            ..writeAsStringSync(covString());
   
   
-  Future sendToCoveralls([String address = COVERALLS_ADDRESS]) {
+  Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1}) {
+    retryCount--;
     var req = new MultipartRequest("POST", Uri.parse(address));
     req.files.add(new MultipartFile.fromString("json_file", covString(),
         filename: "json_file"));
@@ -278,9 +292,12 @@ class CoverallsReport implements CoverallsReportable {
       responses.single.stream.toList().then((intValues) {
         var msg = intValues.map((line) =>
             new String.fromCharCodes(line)).join("\n");
-        print (msg);
-        if (responses.single.statusCode == 200) return;
-        throw new Exception(responses.single.reasonPhrase);
+        if (responses.single.statusCode == 200) return log.info("200 OK");
+        if (retryCount > 0) {
+          log.info("Transmission failed, retrying...");
+          return sendToCoveralls(retryCount: retryCount);
+        }
+        throw new Exception(responses.single.reasonPhrase + "\n$msg");
       });
     });
   }

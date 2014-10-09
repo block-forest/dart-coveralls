@@ -1,7 +1,6 @@
 import 'dart:io';
 import 'package:args/args.dart';
 import 'package:dart_coveralls/dart_coveralls.dart';
-import 'package:coverage/coverage.dart';
 import 'package:path/path.dart';
 
 
