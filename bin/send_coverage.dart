@@ -33,11 +33,11 @@ void main(List<String> args) {
   var token = getToken(results["token"]);
   
   if (token != null) {
-    var f = CoverallsReport.getReportFromLcovFile(token, lcov,
-        directory);
-    return f.then((report) {
+    CoverallsReport.getReportFromLcovFile(token, lcov,
+        directory).then((report) {
       report.sendToCoveralls().then((_) => print("done"));
     });
+    return null;
   }
   
   return print("No token specified or in environment");

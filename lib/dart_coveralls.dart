@@ -275,8 +275,13 @@ class CoverallsReport implements CoverallsReportable {
     req.files.add(new MultipartFile.fromString("json_file", covString(),
         filename: "json_file"));
     return req.send().asStream().toList().then((responses) {
-      if (responses.single.statusCode == 200) return;
-      throw new Exception(responses.single.reasonPhrase);
+      responses.single.stream.toList().then((intValues) {
+        var msg = intValues.map((line) =>
+            new String.fromCharCodes(line)).join("\n");
+        print (msg);
+        if (responses.single.statusCode == 200) return;
+        throw new Exception(responses.single.reasonPhrase);
+      });
     });
   }
 } 
