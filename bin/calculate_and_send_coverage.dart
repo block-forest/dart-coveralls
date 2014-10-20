@@ -24,7 +24,7 @@ main(List<String> args) {
   if (res["help"]) return print(parser.getUsage());
   if (res.rest.length != 1) return print(parser.getUsage());
   if (res["debug"]) {
-    log.onRecord.listen((rec) => print(rec.loggerName + ": " + rec.message));
+    log.onRecord.listen((rec) => print(rec));
   }
   
   var pRoot = getPackageRoot(res["package-root"]);
@@ -32,8 +32,11 @@ main(List<String> args) {
   var token = getToken(res["token"]);
   
   if (!pRoot.existsSync()) return print("Root directory does not exist");
+  log.info(() => "Package root is ${pRoot.absolute.path}");
   if (!file.existsSync()) return print("Dart file does not exist");
+  log.info(() => "Evaluated dart file is ${file.absolute.path}");
   if (token == null) return print("Please specify a repo token");
+  log.info("Token is $token");
   
   return getLcovInformation(int.parse(res["workers"]), file, pRoot).then((r) {
     CoverallsReport.getReportFromLcovString(token, r.toString(),

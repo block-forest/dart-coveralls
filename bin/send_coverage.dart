@@ -24,7 +24,7 @@ void main(List<String> args) {
   if (results.rest.length != 1) return print(parser.getUsage());
   
   var lcov = new File(results.rest.single);
-  var directory = getPackageRoot(results["directory"]);
+  var directory = getPackageRoot(results["package-root"]);
   var token = getToken(results["token"]);
   
   if (token != null) {

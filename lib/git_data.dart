@@ -126,7 +126,7 @@ class GitData implements CoverallsReportable {
       return gitDir.getCurrentBranch().then((branch) {
         var branchName = branch.branchName;
         return GitRemote.getGitRemotes(gitDir).then((remotes) {
-          return GitCommit.getGitCommit(gitDir, branch.reference).then((c) {
+          return GitCommit.getGitCommit(gitDir, branch.sha).then((c) {
             return new GitData(branchName, remotes, c);
           });
         });

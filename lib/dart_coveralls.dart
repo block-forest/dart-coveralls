@@ -284,7 +284,6 @@ class CoverallsReport implements CoverallsReportable {
   
   
   Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1}) {
-    retryCount--;
     var req = new MultipartRequest("POST", Uri.parse(address));
     req.files.add(new MultipartFile.fromString("json_file", covString(),
         filename: "json_file"));
@@ -294,6 +293,7 @@ class CoverallsReport implements CoverallsReportable {
             new String.fromCharCodes(line)).join("\n");
         if (responses.single.statusCode == 200) return log.info("200 OK");
         if (retryCount > 0) {
+          retryCount--;
           log.info("Transmission failed, retrying...");
           return sendToCoveralls(retryCount: retryCount);
         }
