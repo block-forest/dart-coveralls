@@ -21,8 +21,8 @@ main(List<String> args) {
   setupParser();
   var res = parser.parse(args);
 
-  if (res["help"]) return print(parser.getUsage());
-  if (res.rest.length != 1) return print(parser.getUsage());
+  if (res["help"]) return print(parser.usage);
+  if (res.rest.length != 1) return print(parser.usage);
   if (res["debug"]) {
     log.onRecord.listen((rec) => print(rec));
   }

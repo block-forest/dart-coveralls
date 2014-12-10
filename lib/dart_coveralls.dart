@@ -1,7 +1,7 @@
 library dart_coveralls;
 
 import 'dart:io';
-import 'dart:async' show Future;
+import 'dart:async' show Future, Timer;
 import 'dart:convert' show JSON;
 import 'package:http/http.dart' show MultipartRequest, MultipartFile;
 import 'package:path/path.dart';
@@ -82,13 +82,11 @@ class SourceFileReport implements CoverallsReportable {
     return new SourceFileReport(sourceFile, coverage);
   }
   
-  static bool isReportOfInterest(arg, Directory packageRoot) {
+  static bool isReportOfInterest(arg, List<FileSystemEntity> packageFiles) {
+    var files = packageFiles.map((f) => f.absolute.path).toSet();
     var path = arg is List ? arg.first.split(":")[1] : arg;
-    var testFile = new File(path);
-    if (testFile.existsSync()) return true;
-    var dirName = basename(packageRoot.path);
-    path = path.substring(packageRoot.path.length);
-    return path.startsWith(dirName, 1);
+    var result = files.contains(path);
+    return result;
   }
   
   
@@ -207,9 +205,11 @@ class SourceFileReports implements CoverallsReportable {
       Directory packageRoot) {
     var fileLines = lcov.split("\n");
     var sourceFileReportStrings = _getSourceFileReportLines(fileLines);
+    var files = packageRoot.listSync(recursive: true, followLinks: false)
+        .where((f) => f is File).map((f) => f as File).toList();
     var sourceFileReports = sourceFileReportStrings
         .where((lines) =>
-            SourceFileReport.isReportOfInterest(lines, packageRoot))
+            SourceFileReport.isReportOfInterest(lines, files))
               .map((str) =>
         new SourceFileReport.fromLcovSourceFileReport(str, packageRoot)).toList();
     return new SourceFileReports(sourceFileReports);
@@ -274,7 +274,8 @@ class CoverallsReport implements CoverallsReportable {
   
   
   String covString() => "{" + "\"repo_token\": \"$repoToken\", " +
-      sourceFileReports.covString() + ", \"git\": ${gitData.covString()} }";
+      sourceFileReports.covString() + ", \"git\": ${gitData.covString()}, " +
+      "\"service_name\": \"$serviceName\"}";
   
   
   File writeToFile(String path) => 
@@ -283,9 +284,11 @@ class CoverallsReport implements CoverallsReportable {
            ..writeAsStringSync(covString());
   
   
-  Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1}) {
+  Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1,
+    Duration timeoutDuration: const Duration(seconds: 5), String json}) {
     var req = new MultipartRequest("POST", Uri.parse(address));
-    req.files.add(new MultipartFile.fromString("json_file", covString(),
+    if (null == json) json = covString();
+    req.files.add(new MultipartFile.fromString("json_file", json,
         filename: "json_file"));
     return req.send().asStream().toList().then((responses) {
       responses.single.stream.toList().then((intValues) {
@@ -294,8 +297,10 @@ class CoverallsReport implements CoverallsReportable {
         if (responses.single.statusCode == 200) return log.info("200 OK");
         if (retryCount > 0) {
           retryCount--;
-          log.info("Transmission failed, retrying...");
-          return sendToCoveralls(retryCount: retryCount);
+          log.info("Transmission failed ($msg), retrying... in $timeoutDuration");
+          return new Future.delayed(timeoutDuration, () =>
+              sendToCoveralls(retryCount: retryCount,
+                  timeoutDuration: timeoutDuration, json: json));
         }
         throw new Exception(responses.single.reasonPhrase + "\n$msg");
       });
