@@ -11,7 +11,7 @@ void setupParser() {
   parser.addOption("token", help: "Token for coveralls");
   parser.addOption("workers", help: "Number of workers for parsing",
         defaultsTo: "1");
-  parser.addOption("package-root", help: "Root package");
+  parser.addOption("package-root", help: "Root package", defaultsTo: ".");
   parser.addFlag("debug", help: "Prints debug information");
   parser.addOption("retry", help: "Number of retries", defaultsTo: "1");
 }
@@ -27,7 +27,7 @@ main(List<String> args) {
     log.onRecord.listen((rec) => print(rec));
   }
   
-  var pRoot = getPackageRoot(res["package-root"]);
+  var pRoot = new Directory(res["package-root"]);
   var file = new File(res.rest.single);
   var token = getToken(res["token"]);
   

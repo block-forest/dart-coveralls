@@ -20,8 +20,8 @@ void main(List<String> args) {
   setupParser();
   var results = parser.parse(args);
   
-  if (results["help"]) return print(parser.getUsage());
-  if (results.rest.length != 1) return print(parser.getUsage());
+  if (results["help"]) return print(parser.usage);
+  if (results.rest.length != 1) return print(parser.usage);
   
   var lcov = new File(results.rest.single);
   var directory = getPackageRoot(results["package-root"]);

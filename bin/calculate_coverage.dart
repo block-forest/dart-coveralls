@@ -13,6 +13,8 @@ void setupParser() {
   parser.addOption("workers", help: "Number of workers for parsing",
       defaultsTo: "1");
   parser.addOption("output", help: "Output file path");
+  parser.addOption("package-root", help: "Root of the analyzed package",
+      defaultsTo: ".");
 }
 
 
@@ -25,10 +27,10 @@ main(List<String> args) {
   setupParser();
   var res = parser.parse(args);
   
-  if (res.rest.length != 2) return print(parser.getUsage());
+  if (res.rest.length != 1) return print(parser.usage);
   
-  var pRoot = new Directory(res.rest.first);
-  var file = new File(res.rest.last);
+  var pRoot = new Directory(res["package-root"]);
+  var file = new File(res.rest.single);
   
   if (!pRoot.existsSync()) return print("Root directory does not exist");
   if (!file.existsSync()) return print("Dart file does not exist");

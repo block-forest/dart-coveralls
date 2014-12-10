@@ -123,8 +123,6 @@ class SourceFile implements CoverallsReportable {
     }
     var dirName = basename(packageRoot.path);
     var index = path.lastIndexOf(dirName);
-    //path = path.substring(0, packageRoot.path.length) + "/packages" + 
-    //    path.substring(packageRoot.path.length);
     path = path.substring(0, packageRoot.path.length) + "/lib" + 
         path.substring(packageRoot.path.length + dirName.length + 1);
     log.info("ADDED FILE $path");
@@ -137,14 +135,17 @@ class SourceFile implements CoverallsReportable {
 }
 
 
-
+/// [Coverage] represents basic coverage information. Coverage
+/// information consists of several LineValues.
 class Coverage implements CoverallsReportable {
   final List<LineValue> values;
   
-  
+  /// Instantiates a new [Coverage] with the given [LineValue]s.
   Coverage(this.values);
   
-  
+
+  /// Parses the given LCOV numeration into [LineValue]s and
+  /// instantiates a [Coverage] object with the parsed values
   factory Coverage.fromLcovNumeration(List<String> numeration) {
     var values = [];
     var current = 1;
@@ -155,6 +156,7 @@ class Coverage implements CoverallsReportable {
         values.addAll(new List.generate(distance, (_) =>
             new LineValue.noCount(current++)));
       values.add(lineValue);
+      current++;
     }
     return new Coverage(values);
   }
@@ -166,18 +168,21 @@ class Coverage implements CoverallsReportable {
 }
 
 
-
+/// A [LineValue] represents a single line in an LCOV-File
 class LineValue implements CoverallsReportable {
   final int lineNumber;
   final int lineCount;
   
-  
+  /// Instantiates a [LineValue] with the given line number and line count
   LineValue(this.lineNumber, this.lineCount);
   
-  
+  /// Instantiates a [LineValue] with the given line number and line count null
   LineValue.noCount(this.lineNumber) : lineCount = null;
   
-  
+  /// Parses a LineValue from a given LCOV Line and returns a LineValue instance
+  ///
+  /// An example for an LCOV line is "DA:3,4", which will be parsed into
+  /// a [Linevalue] instance with line number 3 and line count 4
   factory LineValue.fromLcovNumerationLine(String line) {
     var valuePair = line.split(":");
     var values = valuePair[1].split(",");
@@ -282,6 +287,26 @@ class CoverallsReport implements CoverallsReportable {
       new File(".tempReport")
            ..createSync()
            ..writeAsStringSync(covString());
+  
+  // As soon as async is stable
+  /*sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 0,
+    Duration timeoutDuration: const Duration(seconds: 5)}) async {
+    var json = covString();
+    for (int i = 0; i <= retryCount; i++) {
+      var req = new MultipartRequest("POST", Uri.parse(address));
+      req.files.add(new MultipartFile.fromString("json_file", json,
+              filename: "json_file"));
+      var responses = await req.send().asStream().toList();
+      var response = responses.single;
+      var values = await response.stream.toList();
+      var msg = values.map((line) => new String.fromCharCodes(line)).join("\n");
+      if (200 == response.statusCode) return;
+      log.warning(msg);
+      if (retryCount == i-1) {
+        throw new Exception(response.reasonPhrase + "\n$msg");
+      }
+    }
+  }*/
   
   
   Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1,

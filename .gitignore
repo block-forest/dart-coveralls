@@ -13,3 +13,6 @@ packages
 
 # Include when developing application packages.
 pubspec.lock
+
+# Do not include intellij stuff
+.idea
