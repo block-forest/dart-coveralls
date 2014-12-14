@@ -329,7 +329,6 @@ class CoverallsReport implements CoverallsReportable {
     Duration timeoutDuration: const Duration(seconds: 5), String json}) {
     var req = new MultipartRequest("POST", Uri.parse(address));
     if (null == json) json = covString();
-    print(json);
     req.files.add(new MultipartFile.fromString("json_file", json,
         filename: "json_file"));
     return req.send().asStream().toList().then((responses) {
