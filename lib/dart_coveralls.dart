@@ -6,6 +6,7 @@ import 'dart:convert' show JSON;
 import 'package:http/http.dart' show MultipartRequest, MultipartFile;
 import 'package:path/path.dart';
 import 'package:coverage/coverage.dart';
+import 'package:yaml/yaml.dart';
 import 'package:git/git.dart';
 import 'package:logging/logging.dart';
 
@@ -20,6 +21,14 @@ const String COVERALLS_ADDRESS = "https://coveralls.io/api/v1/jobs";
 Directory getPackageRoot(String candidate) {
   if (candidate == null || candidate == "") return Directory.current;
   return new Directory(candidate);
+}
+
+
+String getPackageName(Directory packageRoot) {
+  var pubspecFile = new File(packageRoot.path + "/pubspec.yaml");
+  var pubspecContent = pubspecFile.readAsStringSync();
+  var yaml = loadYaml(pubspecContent);
+  return yaml["name"];
 }
 
 
@@ -82,11 +91,11 @@ class SourceFileReport implements CoverallsReportable {
     return new SourceFileReport(sourceFile, coverage);
   }
   
-  static bool isReportOfInterest(arg, List<FileSystemEntity> packageFiles) {
-    var files = packageFiles.map((f) => f.absolute.path).toSet();
-    var path = arg is List ? arg.first.split(":")[1] : arg;
-    var result = files.contains(path);
-    return result;
+  static bool isReportOfInterest(arg, String packageName, Set<File> files) {
+    var path = (arg is List ? arg.first.split(":")[1] : arg) as String;
+    if (path.startsWith(packageName)) return true;
+    var paths = files.map((f) => normalize(f.absolute.path)).toSet();
+    return paths.contains(path);
   }
   
   
@@ -108,7 +117,8 @@ class SourceFile implements CoverallsReportable {
       Directory packageRoot) {
     var path = heading.split(":")[1];
     var file = _getSourceFile(path, packageRoot);
-    var name = file.absolute.path.substring(packageRoot.path.length + 1);
+    var ctx = new Context(current: packageRoot.absolute.path);
+    var name = ctx.relative(file.path);
     var sourceLines = file.readAsLinesSync();
     var source = sourceLines.join("\n");
     return new SourceFile(name, source);
@@ -118,15 +128,11 @@ class SourceFile implements CoverallsReportable {
   static File _getSourceFile(String path, Directory packageRoot) {
     var file = new File(path);
     if (file.existsSync()) {
-      log.info("ADDED FILE $path");
-      return file;
+      return file.absolute;
     }
-    var dirName = basename(packageRoot.path);
-    var index = path.lastIndexOf(dirName);
-    path = path.substring(0, packageRoot.path.length) + "/lib" + 
-        path.substring(packageRoot.path.length + dirName.length + 1);
-    log.info("ADDED FILE $path");
-    return new File(path);
+    file = new File(packageRoot.path + "/packages/$path");
+    file = new File(file.resolveSymbolicLinksSync());
+    return file.absolute;
   }
   
   
@@ -209,12 +215,14 @@ class SourceFileReports implements CoverallsReportable {
   factory SourceFileReports.fromLcov(String lcov,
       Directory packageRoot) {
     var fileLines = lcov.split("\n");
-    var sourceFileReportStrings = _getSourceFileReportLines(fileLines);
     var files = packageRoot.listSync(recursive: true, followLinks: false)
-        .where((f) => f is File).map((f) => f as File).toList();
+                           .where((f) => f is File)
+                           .map((f) => f as File).toSet();
+    var packageName = getPackageName(packageRoot);
+    var sourceFileReportStrings = _getSourceFileReportLines(fileLines);
     var sourceFileReports = sourceFileReportStrings
         .where((lines) =>
-            SourceFileReport.isReportOfInterest(lines, files))
+            SourceFileReport.isReportOfInterest(lines, packageName, files))
               .map((str) =>
         new SourceFileReport.fromLcovSourceFileReport(str, packageRoot)).toList();
     return new SourceFileReports(sourceFileReports);
