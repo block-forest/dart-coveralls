@@ -93,9 +93,17 @@ class SourceFileReport implements CoverallsReportable {
   
   static bool isReportOfInterest(arg, String packageName, Set<File> files) {
     var path = (arg is List ? arg.first.split(":")[1] : arg) as String;
-    if (path.startsWith(packageName)) return true;
+    if (path.startsWith(packageName)) {
+      log.info("ADDING $path");
+      return true;
+    }
     var paths = files.map((f) => normalize(f.absolute.path)).toSet();
-    return paths.contains(path);
+    if (paths.contains(path)) {
+      log.info("ADDING $path");
+      return true;
+    }
+    log.info("IGNORING $path");
+    return false;
   }
   
   
@@ -321,6 +329,7 @@ class CoverallsReport implements CoverallsReportable {
     Duration timeoutDuration: const Duration(seconds: 5), String json}) {
     var req = new MultipartRequest("POST", Uri.parse(address));
     if (null == json) json = covString();
+    print(json);
     req.files.add(new MultipartFile.fromString("json_file", json,
         filename: "json_file"));
     return req.send().asStream().toList().then((responses) {
@@ -337,6 +346,7 @@ class CoverallsReport implements CoverallsReportable {
         }
         throw new Exception(responses.single.reasonPhrase + "\n$msg");
       });
-    });
+    }).catchError(() => sendToCoveralls(retryCount: retryCount - 1,
+    timeoutDuration: timeoutDuration, json: json));
   }
 } 

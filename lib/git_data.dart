@@ -15,10 +15,10 @@ abstract class GitPerson implements CoverallsReportable {
   
   
   static String _getPersonName(String str) =>
-      str.split("<")[0];
+      str.split("<")[0].trim();
   
   static String _getPersonMail(String str) =>
-      new RegExp(r"<(.*?)>").firstMatch(str).group(0);
+      new RegExp(r"<(.*?)>").firstMatch(str).group(0).trim();
 }
 
 
@@ -31,7 +31,8 @@ class GitCommitter extends GitPerson {
   
   
   String covString() =>
-      "\"committer_name\": \"$name\", \"committer_email\": \"$mail\"";
+      "\"committer_name\": ${JSON.encode(name)}, "
+      + "\"committer_email\": ${JSON.encode(mail)}";
 }
 
 
@@ -44,7 +45,8 @@ class GitAuthor extends GitPerson {
   
   
   String covString() =>
-      "\"author_name\": \"$name\", \"author_email\": \"$mail\"";
+      "\"author_name\": ${JSON.encode(name)}, "
+      + "\"author_email\": ${JSON.encode(mail)}";
 }
 
 
@@ -70,7 +72,7 @@ class GitCommit implements CoverallsReportable {
   
   
   String covString() => "{\"id\": \"$id\", ${author.covString()}, " + 
-      "${committer.covString()}, \"message\": \"$message\"}";
+      "${committer.covString()}, \"message\": ${JSON.encode(message)}}";
 }
 
 
@@ -107,7 +109,7 @@ class GitRemote implements CoverallsReportable {
   int get hashCode => name.hashCode;
   
   
-  String covString() => "{\"name\": \"$name\", \"url\": \"$url\"}";
+  String covString() => "{\"name\": \"$name\", \"url\": ${JSON.encode(address)}}";
 }
 
 
