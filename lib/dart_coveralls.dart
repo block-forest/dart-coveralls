@@ -18,11 +18,6 @@ final Logger log = new Logger("dart_coveralls");
 
 const String COVERALLS_ADDRESS = "https://coveralls.io/api/v1/jobs";
 
-Directory getPackageRoot(String candidate) {
-  if (candidate == null || candidate == "") return Directory.current;
-  return new Directory(candidate);
-}
-
 
 String getPackageName(Directory packageRoot) {
   var pubspecFile = new File(packageRoot.path + "/pubspec.yaml");
