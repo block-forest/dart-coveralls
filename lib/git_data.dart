@@ -62,14 +62,23 @@ class GitCommit implements CoverallsReportable {
   
   GitCommit(this.id, this.author, this.committer, this.message);
   
+  static GitCommit getCommit(Directory dir, String id,
+    {ProcessSystem processSystem: const ProcessSystem()}) {
+    var args = ["show", "$id", "--format=full", "--quiet"];
+    var res = processSystem.runProcessSync("git", args,
+        workingDirectory: dir.path);
+    if (0 != res.exitCode) throw new ProcessException("git", args, res.stderr);
+    return GitCommit.parse(res.stdout);
+  }
   
-  static Future<GitCommit> getGitCommit(GitDir dir, String id) {
-    return dir.getCommit(id).then((commit) {
-      var message = commit.message;
-      var author = new GitAuthor.fromPersonString(commit.author);
-      var committer = new GitCommitter.fromPersonString(commit.committer);
-      return new GitCommit(id, author, committer, message);
-    });
+  
+  static GitCommit parse(String commitString) {
+    var lines = commitString.split("\n");
+    var id = lines.first.split(" ").last;
+    var author = new GitAuthor.fromPersonString(lines[1]);
+    var committer = new GitCommitter.fromPersonString(lines[2]);
+    var message = lines.sublist(4).join("\n");
+    return new GitCommit(id, author, committer, message);
   }
   
   
@@ -87,13 +96,15 @@ class GitRemote implements CoverallsReportable {
   GitRemote(this.name, this.address);
   
   
-  static Future<List<GitRemote>> getGitRemotes(GitDir dir) {
-    return dir.runCommand(["remote", "-v"]).then((result) {
-      var remotes = new Set<GitRemote>();
-      var lines = (result.stdout as String).split("\n")..removeLast();
-      remotes.addAll(lines.map((line) => new GitRemote.fromRemoteString(line)));
-      return remotes.toList();
-    });
+  static List<GitRemote> getGitRemotes(Directory dir,
+      {ProcessSystem processSystem: const ProcessSystem()}) {
+    var args = ["remote", "-v"];
+    var res = processSystem.runProcessSync("git",
+        args, workingDirectory: dir.path);
+    if (0 != res.exitCode) throw new ProcessException("git", args, res.stderr);
+    var lines = (res.stdout as String).split("\n").where((str) => "" != str);
+    return lines.map((line) => new GitRemote.fromRemoteString(line))
+                .toSet().toList();
   }
   
   
@@ -116,6 +127,41 @@ class GitRemote implements CoverallsReportable {
 }
 
 
+class GitBranch {
+  String name;
+  String reference;
+  String id;
+  
+  GitBranch(this.name, this.reference, this.id);
+  
+  static String getCurrentBranchName(Directory dir,
+    {ProcessSystem processSystem: const ProcessSystem()}) {
+    var args = ["rev-parse", "--abbrev-ref", "HEAD"];
+    var result = processSystem.runProcessSync("git", args,
+        workingDirectory: dir.path);
+    if (0 != result.exitCode)
+      throw new ProcessException("git", args, result.stderr,
+          result.exitCode);
+    return result.stdout.trim();
+  }
+  
+  static GitBranch getCurrent(Directory dir,
+    {ProcessSystem processSystem: const ProcessSystem()}) {
+    var name = getCurrentBranchName(dir, processSystem: processSystem);
+    var args = ["show-ref", "$name", "--heads"];
+    var result = processSystem.runProcessSync("git", args,
+        workingDirectory: dir.path);
+    if (0 != result.exitCode)
+      throw new ProcessException("git", args, result.stderr,
+          result.exitCode);
+    var parts = result.stdout.split("\n")[0].split(" ");
+    var id = parts[0];
+    var ref = parts[1];
+    return new GitBranch(name, ref, id);
+  }
+}
+
+
 
 class GitData implements CoverallsReportable {
   final String branch;
@@ -126,17 +172,13 @@ class GitData implements CoverallsReportable {
   GitData(this.branch, this.remotes, this.headCommit);
   
   
-  static Future<GitData> getGitData(Directory gitDir) {
-    return GitDir.fromExisting(gitDir.path).then((gitDir) {
-      return gitDir.getCurrentBranch().then((branch) {
-        var branchName = branch.branchName;
-        return GitRemote.getGitRemotes(gitDir).then((remotes) {
-          return GitCommit.getGitCommit(gitDir, branch.sha).then((c) {
-            return new GitData(branchName, remotes, c);
-          });
-        });
-      });
-    });
+  static GitData getGitData(Directory dir,
+      {ProcessSystem processSystem: const ProcessSystem()}) {
+    var branch = GitBranch.getCurrent(dir, processSystem: processSystem);
+    var remotes = GitRemote.getGitRemotes(dir);
+    var commit = GitCommit.getCommit(dir, branch.id,
+        processSystem: processSystem);
+    return new GitData(branch.name, remotes, commit);
   }
   
   

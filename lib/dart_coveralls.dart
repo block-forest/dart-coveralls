@@ -2,14 +2,14 @@ library dart_coveralls;
 
 import 'dart:io';
 import 'dart:async' show Future, Timer;
-import 'dart:convert' show JSON;
+import 'dart:convert' show JSON, Encoding;
 import 'package:http/http.dart' show MultipartRequest, MultipartFile;
 import 'package:path/path.dart';
 import 'package:coverage/coverage.dart';
 import 'package:yaml/yaml.dart';
-import 'package:git/git.dart';
 import 'package:logging/logging.dart';
 import 'package:mockable_filesystem/filesystem.dart';
+import 'process_system.dart';
 
 export 'package:logging/logging.dart';
 
@@ -297,20 +297,19 @@ class CoverallsReport implements CoverallsReportable {
   }
   
   
-  static Future<CoverallsReport> getReportFromLcovFile(String repoToken, File lcov,
+  static CoverallsReport getReportFromLcovFile(String repoToken, File lcov,
       Directory packageRoot) {
     return getReportFromLcovString(repoToken, lcov.readAsStringSync(),
         packageRoot);
   }
   
   
-  static Future<CoverallsReport> getReportFromLcovString(String repoToken, String lcov,
+  static CoverallsReport getReportFromLcovString(String repoToken, String lcov,
       Directory packageRoot) {
-    return GitData.getGitData(packageRoot).then((data) {
-      var dirName = basename(packageRoot.path);
-      return new CoverallsReport(repoToken,
-          new SourceFileReports.fromLcov(lcov, packageRoot), data);
-    });
+    var gitData = GitData.getGitData(packageRoot);
+    var dirName = basename(packageRoot.path);
+    return new CoverallsReport(repoToken,
+        new SourceFileReports.fromLcov(lcov, packageRoot), gitData);
   }
   
   

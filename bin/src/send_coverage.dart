@@ -31,12 +31,10 @@ class SendPart extends Object with CommandLinePart {
     var token = getToken(results["token"]);
     
     if (token != null) {
-      CoverallsReport.getReportFromLcovFile(token, lcov,
-          directory).then((report) {
-        report.sendToCoveralls(retryCount: int.parse(results["retry"]))
-          .then((_) => print("done"));
-      });
-      return null;
+      var report = CoverallsReport.getReportFromLcovFile(token, lcov,
+          directory);
+      return report.sendToCoveralls(retryCount: int.parse(results["retry"]))
+        .then((_) => print("done"));
     }
     
     return print("No token specified or in environment");

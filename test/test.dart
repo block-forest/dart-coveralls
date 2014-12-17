@@ -1,51 +1,14 @@
+library dart_coveralls.test;
+
 import "dart:io";
 import "dart:async" show Future;
 import "package:dart_coveralls/dart_coveralls.dart";
 import "package:unittest/unittest.dart";
 import "package:mock/mock.dart";
-import "package:git/git.dart";
 import "package:mockable_filesystem/mock_filesystem.dart";
+import "package:dart_coveralls/process_system.dart";
 
-@proxy
-class FileSystemMock extends Mock implements FileSystem {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class FileMock extends Mock implements File {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class DirectoryMock extends Mock implements Directory {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class GitDirMock extends Mock implements GitDir {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class CommitMock extends Mock implements Commit {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class ProcessResultMock extends Mock implements ProcessResult {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class SourceFilesReportsMock extends Mock implements SourceFileReports {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-@proxy
-class GitDataMock extends Mock implements GitData {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
+part "mock_classes.dart";
 
 
 
@@ -202,29 +165,6 @@ main() {
   });
   
   group("GitCommit", () {
-    test("getGitCommit", () {
-      var dirMock = new GitDirMock();
-      var commitMock = new CommitMock();
-      
-      commitMock.when(callsTo("get message")).thenReturn("message");
-      commitMock.when(callsTo("get author"))
-                .thenReturn("Adracus <adracus@gmail.com>");
-      commitMock.when(callsTo("get committer"))
-                .thenReturn("NotAdracus <notadracus@gmail.com>");
-      commitMock.when(callsTo("get id")).thenReturn("id");
-      dirMock.when(callsTo("getCommit", "id"))
-             .thenReturn(new Future.value(commitMock));
-      
-      GitCommit.getGitCommit(dirMock, "id").then(expectAsync((GitCommit commit) {
-        expect(commit.author.name, equals("Adracus"));
-        expect(commit.author.mail, equals("adracus@gmail.com"));
-        expect(commit.committer.name, equals("NotAdracus"));
-        expect(commit.committer.mail, equals("notadracus@gmail.com"));
-        expect(commit.message, equals("message"));
-        expect(commit.id, equals("id"));
-      }));
-    });
-    
     test("covString", () {
       var committer = new GitCommitter("NotAdracus", "notadracus@gmail.com");
       var author = new GitAuthor("Adracus", "adracus@gmail.com");
@@ -246,20 +186,25 @@ main() {
     });
     
     test("getGitRemotes", () {
+      var processSystem = new ProcessSystemMock();
       var processResult = new ProcessResultMock();
-      var mockDir = new GitDirMock();
+      var mockDir = new DirectoryMock();
+      var args = ["remote", "-v"];
+      mockDir.when(callsTo("get path")).thenReturn(".");
+      processSystem.when(callsTo("runProcessSync", "git", args))
+                   .thenReturn(processResult);
       processResult.when(callsTo("get stdout"))
         .thenReturn("origin\tgit@github.com:Adracus/dart-coveralls.git (fetch)\n" +
                     "origin\tgit@github.com:Adracus/dart-coveralls.git (push)");
+      processResult.when(callsTo("get exitCode")).thenReturn(0);
       mockDir.when(callsTo("runCommand", ["remote", "-v"])).thenReturn(
           new Future.value(processResult));
-      GitRemote.getGitRemotes(mockDir).then(
-          expectAsync((List<GitRemote> remotes) {
-        expect(remotes.length, equals(1));
-        expect(remotes.single.name, equals("origin"));
-        expect(remotes.single.address,
-            equals("git@github.com:Adracus/dart-coveralls.git"));
-      }));
+      var remotes = GitRemote.getGitRemotes(mockDir,
+          processSystem: processSystem);
+      expect(remotes.length, equals(1));
+      expect(remotes.single.name, equals("origin"));
+      expect(remotes.single.address,
+          equals("git@github.com:Adracus/dart-coveralls.git"));
     });
     
     test("covString", () {
