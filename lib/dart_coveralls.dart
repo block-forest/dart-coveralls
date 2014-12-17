@@ -54,7 +54,7 @@ String getToken(String candidate, [Map<String, String> environment]) {
 /// to the dart sdk joined with "lib", otherwise this returns null.
 String getSDKRootPath([Map<String, String> environment]) {
   if (null == environment) environment = Platform.environment;
-  if (Platform.environment.containsKey("DART_SDK"))
+  if (environment.containsKey("DART_SDK"))
     return join(absolute(normalize(Platform.environment["DART_SDK"])), "lib");
   return null;
 }

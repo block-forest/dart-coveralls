@@ -135,13 +135,18 @@ class GitBranch {
   GitBranch(this.name, this.reference, this.id);
   
   static String getCurrentBranchName(Directory dir,
-    {ProcessSystem processSystem: const ProcessSystem()}) {
-    var args = ["rev-parse", "--abbrev-ref", "HEAD"];
+    {ProcessSystem processSystem: const ProcessSystem(),
+      String reference: "HEAD"}) {
+    var args = ["rev-parse", "--abbrev-ref", "$reference"];
     var result = processSystem.runProcessSync("git", args,
         workingDirectory: dir.path);
     if (0 != result.exitCode)
       throw new ProcessException("git", args, result.stderr,
           result.exitCode);
+    var name = result.stdout.trim() as String;
+    if ("HEAD" == name && "HEAD" == reference) // This means detatched Head state
+      return getCurrentBranchName(dir, processSystem: processSystem,
+          reference: "@{-1}"); // Try to get previous branch for data
     return result.stdout.trim();
   }
   

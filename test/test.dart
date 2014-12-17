@@ -41,12 +41,16 @@ main() {
              .verify(happenedOnce);
     });
     
-    test("getToken", () {
-      var t1 = getToken("test");
-      var t2 = getToken(null, {"REPO_TOKEN": "test"});
+    group("getToken", () {
+      test("with candidate", () {
+        var t1 = getToken("test");
+        expect(t1, equals("test"));
+      });
       
-      expect(t1, equals("test"));
-      expect(t2, equals("test"));
+      test("without candidate", () {
+        var t2 = getToken(null, {"REPO_TOKEN": "test"});
+        expect(t2, equals("test"));
+      });
     });
   });
   
