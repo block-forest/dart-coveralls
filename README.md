@@ -29,7 +29,8 @@ dart dart_coveralls.dart report [--workers, --token, --package-root, --debug, --
 ```
 
 * --workers: The number of workers used to parse LCOV information
-* --token: The token for coveralls.io
+* --token: The token for coveralls.io. The token can also be set as an
+  environment variable called `REPO_TOKEN`.
 * --package-root: The root of the analyzed package, default `.`
 * --debug: Prints additional debug information
 * --retry: The number of retries to submit data to coveralls
@@ -42,7 +43,8 @@ This command sends coverage collected in an LCOV-File to coveralls.io.
 dart dart_coveralls.dart send [--token, --package-root, --retry] lcov.file
 ```
 
-* --token: The token for coveralls.io
+* --token: The token for coveralls.io. The token can also be set as an
+  environment variable called `REPO_TOKEN`.
 * --package-root: The root of the analyzed package, default `.`
 * --retry: The number of retries to submit data to coveralls
 * lcov.file: The LCOV file which should be reported to coveralls
