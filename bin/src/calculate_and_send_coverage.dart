@@ -45,7 +45,6 @@ class ReportPart extends Object with CommandLinePart {
     log.info("Token is $token");
     
     return getLcovInformation(int.parse(res["workers"]), file, pRoot).then((r) {
-      print(r);
       var report = CoverallsReport.getReportFromLcovString(token,
           r.toString(), pRoot);
       if (!res["dry-run"])
