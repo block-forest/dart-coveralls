@@ -10,15 +10,17 @@ abstract class GitPerson implements CoverallsReportable {
   
   
   GitPerson.fromPersonString(String str)
-      : name = _getPersonName(str),
-        mail = _getPersonMail(str);
+      : name = getPersonName(str),
+        mail = getPersonMail(str);
   
   
-  static String _getPersonName(String str) =>
+  static String getPersonName(String str) =>
       str.split("<")[0].trim();
   
-  static String _getPersonMail(String str) =>
-      new RegExp(r"<(.*?)>").firstMatch(str).group(0).trim();
+  static String getPersonMail(String str) {
+    var mail = new RegExp(r"<(.*?)>").firstMatch(str).group(0);
+    return mail.substring(1, mail.length - 1);
+  }
 }
 
 
@@ -109,7 +111,8 @@ class GitRemote implements CoverallsReportable {
   int get hashCode => name.hashCode;
   
   
-  String covString() => "{\"name\": \"$name\", \"url\": ${JSON.encode(address)}}";
+  String covString() => "{\"name\": ${JSON.encode(name)}, " + 
+      "\"url\": ${JSON.encode(address)}}";
 }
 
 

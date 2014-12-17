@@ -9,6 +9,7 @@ import 'package:coverage/coverage.dart';
 import 'package:yaml/yaml.dart';
 import 'package:git/git.dart';
 import 'package:logging/logging.dart';
+import 'package:mockable_filesystem/filesystem.dart';
 
 export 'package:logging/logging.dart';
 
@@ -19,35 +20,53 @@ final Logger log = new Logger("dart_coveralls");
 const String COVERALLS_ADDRESS = "https://coveralls.io/api/v1/jobs";
 
 
-String getPackageName(Directory packageRoot) {
-  var pubspecFile = new File(packageRoot.path + "/pubspec.yaml");
+/// Returns the name of the package located in [packageRoot].
+/// 
+/// This searches [packageRoot] for a yaml file, which it then
+/// parses for the top level attribute name, which it then returns.
+String getPackageName(Directory packageRoot,
+                      [FileSystem fileSystem = const FileSystem()]) {
+  var pubspecFile = fileSystem.getFile(packageRoot.path + "/pubspec.yaml");
   var pubspecContent = pubspecFile.readAsStringSync();
   var yaml = loadYaml(pubspecContent);
   return yaml["name"];
 }
 
 
-
-String getToken(String candidate) {
+/// Returns [candidate] if not null, otherwise environment's REPO_TOKEN
+/// 
+/// This first checks if the given candidate is null. If it is not null,
+/// the candidate will be returned. Otherwise, it searches the given
+/// environment for "REPO_TOKEN" and returns the content of it. If
+/// the given environment is null, it will be [Platform].environment.
+String getToken(String candidate, [Map<String, String> environment]) {
   if (candidate != null) return candidate;
-  if (Platform.environment.containsKey("REPO_TOKEN"))
-    return Platform.environment["REPO_TOKEN"];
-  return null;
+  if (null == environment) environment = Platform.environment;
+  return environment["REPO_TOKEN"];
 }
 
 
-
-String getSDKRootPath() {
+/// Returns the root path of the Dart SDK
+/// 
+/// If the given environment is null, it will be [Platform].environment.
+/// This checks the environment for "DART_SDK". If it exists, this
+/// will return the normalized, absolute form of the path
+/// to the dart sdk joined with "lib", otherwise this returns null.
+String getSDKRootPath([Map<String, String> environment]) {
+  if (null == environment) environment = Platform.environment;
   if (Platform.environment.containsKey("DART_SDK"))
     return join(absolute(normalize(Platform.environment["DART_SDK"])), "lib");
   return null;
 }
 
 
-
+/// Returns an LCOV string of the tested [File].
+/// 
+/// Calculates and returns LCOV information of the tested [File].
+/// This uses [workers] to parse the collected information.
 Future<String> getLcovInformation(int workers, File file, Directory packageRoot,
-    [String sdkRoot]) {
-  var tempDir = new Directory(".temp")..createSync();
+    {String sdkRoot, FileSystem fileSystem: const FileSystem()}) {
+  var tempDir = fileSystem.getDirectory(".temp")..createSync();
   Process.runSync("dart", ["--enable-vm-service:9999",
     "--coverage_dir=${tempDir.absolute.path}", file.absolute.path]);
   if (sdkRoot == null) sdkRoot = getSDKRootPath();
@@ -62,15 +81,19 @@ Future<String> getLcovInformation(int workers, File file, Directory packageRoot,
 }
 
 
-
+/// An interface for Coveralls-Convertable Entity
 abstract class CoverallsReportable {
+  /// Converts this into a json representation for Coveralls
   String covString();
 }
 
 
-
+/// A Report of a single Source File
 class SourceFileReport implements CoverallsReportable {
+  /// Identification of this [SourceFileReport]
   final SourceFile sourceFile;
+  
+  /// The [Coverage] data which was collected for the [sourceFile]
   final Coverage coverage;
   
   
@@ -119,7 +142,7 @@ class SourceFile implements CoverallsReportable {
   factory SourceFile.fromLcovSourceFileHeading(String heading,
       Directory packageRoot) {
     var path = heading.split(":")[1];
-    var file = _getSourceFile(path, packageRoot);
+    var file = getSourceFile(path, packageRoot);
     var ctx = new Context(current: packageRoot.absolute.path);
     var name = ctx.relative(file.path);
     var sourceLines = file.readAsLinesSync();
@@ -128,13 +151,14 @@ class SourceFile implements CoverallsReportable {
   }
   
   
-  static File _getSourceFile(String path, Directory packageRoot) {
-    var file = new File(path);
+  static File getSourceFile(String path, Directory packageRoot,
+                             {FileSystem fileSystem: const FileSystem()}) {
+    var file = fileSystem.getFile(path);
     if (file.existsSync()) {
       return file.absolute;
     }
-    file = new File(packageRoot.path + "/packages/$path");
-    file = new File(file.resolveSymbolicLinksSync());
+    file = fileSystem.getFile(packageRoot.path + "/packages/$path");
+    file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     return file.absolute;
   }
   
@@ -265,8 +289,9 @@ class CoverallsReport implements CoverallsReportable {
       : serviceName = getServiceName();
   
   
-  static String getServiceName() {
-    var serviceName = Platform.environment["COVERALLS_SERVICE_NAME"];
+  static String getServiceName([Map<String, String> environment]) {
+    if (null == environment) environment = Platform.environment;
+    var serviceName = environment["COVERALLS_SERVICE_NAME"];
     if (serviceName == null) return "local";
     return serviceName;
   }
@@ -294,8 +319,8 @@ class CoverallsReport implements CoverallsReportable {
       "\"service_name\": \"$serviceName\"}";
   
   
-  File writeToFile(String path) => 
-      new File(".tempReport")
+  File writeToFile([FileSystem fileSystem = const FileSystem()]) => 
+      fileSystem.getFile(".tempReport")
            ..createSync()
            ..writeAsStringSync(covString());
   
@@ -319,13 +344,19 @@ class CoverallsReport implements CoverallsReportable {
     }
   }*/
   
-  
-  Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1,
-    Duration timeoutDuration: const Duration(seconds: 5), String json}) {
+  MultipartRequest getCoverallsRequest({String address: COVERALLS_ADDRESS,
+    String json}) {
     var req = new MultipartRequest("POST", Uri.parse(address));
     if (null == json) json = covString();
     req.files.add(new MultipartFile.fromString("json_file", json,
         filename: "json_file"));
+    return req;
+  }
+  
+  
+  Future sendToCoveralls({String address: COVERALLS_ADDRESS, int retryCount: 1,
+    Duration timeoutDuration: const Duration(seconds: 5), String json}) {
+    var req = getCoverallsRequest(address: address, json: json);
     return req.send().asStream().toList().then((responses) {
       responses.single.stream.toList().then((intValues) {
         var msg = intValues.map((line) =>

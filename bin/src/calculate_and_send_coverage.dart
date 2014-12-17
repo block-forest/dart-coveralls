@@ -21,6 +21,8 @@ class ReportPart extends Object with CommandLinePart {
     _parser.addOption("package-root", help: "Root package", defaultsTo: ".");
     _parser.addFlag("debug", help: "Prints debug information");
     _parser.addOption("retry", help: "Number of retries", defaultsTo: "1");
+    _parser.addFlag("dry-run", help: "If this flag is enabled, data won't" +
+        " be sent to coveralls");
     return _parser;
   }
   
@@ -45,7 +47,8 @@ class ReportPart extends Object with CommandLinePart {
     return getLcovInformation(int.parse(res["workers"]), file, pRoot).then((r) {
       CoverallsReport.getReportFromLcovString(token, r.toString(),
           pRoot).then((report) {
-        report.sendToCoveralls(retryCount: int.parse(res["retry"]));
+        if (!res["dry-run"])
+          report.sendToCoveralls(retryCount: int.parse(res["retry"]));
       });
     });
   }
