@@ -1,8 +1,4 @@
-library dart_coveralls;
-
-
 import 'package:logging/logging.dart';
-
 export 'src/collect_lcov.dart';
 export 'src/coveralls_endpoint.dart';
 export 'src/git_data.dart';
