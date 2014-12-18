@@ -37,9 +37,9 @@ dart dart_coveralls.dart report [--workers, --token, --package-root, --debug, --
 * `--retry`: The number of retries to submit data to coveralls
 * `--dry-run`: Choose this if the collected data shouldn't be submitted
   to coveralls.
-* `--throw-on-connectivity-error': Should this throw if there is a connectivity
+* `--throw-on-connectivity-error`: Should this throw if there is a connectivity
   error with coveralls?
-* `--throw-on-error': Should this throw if there is an error in the dart
+* `--throw-on-error`: Should this throw if there is an error in the dart
   coveralls library?
 * `test.dart`: The path of the test file on which coverage will be collected
 
