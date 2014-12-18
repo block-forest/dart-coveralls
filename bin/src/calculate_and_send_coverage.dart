@@ -54,7 +54,8 @@ class ReportPart extends Object with CommandLinePart {
     if (!file.existsSync()) return print("Dart file does not exist");
     log.info(() => "Evaluated dart file is ${file.absolute.path}");
     if (token == null) return print("Please specify a repo token");
-    log.info("Token is $token");
+    // We don't print out the token here as it could end up in public build logs.
+    log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
     
     try {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
