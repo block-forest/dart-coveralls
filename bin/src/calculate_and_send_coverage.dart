@@ -17,11 +17,11 @@ class ReportPart extends Object with CommandLinePart {
     _parser.addOption("token", help: "Token for coveralls",
         defaultsTo: Platform.environment["test"]);
     _parser.addOption("workers", help: "Number of workers for parsing",
-          defaultsTo: "10");
+          defaultsTo: "1");
     _parser.addOption("package-root", help: "Root package", defaultsTo: ".");
     _parser.addFlag("debug", help: "Prints debug information",
         negatable: false);
-    _parser.addOption("retry", help: "Number of retries", defaultsTo: "1");
+    _parser.addOption("retry", help: "Number of retries", defaultsTo: "10");
     _parser.addFlag("dry-run", help: "If this flag is enabled, data won't" +
         " be sent to coveralls", negatable: false);
     _parser.addFlag("throw-on-connectivity-error", help: "Should this throw an " +
