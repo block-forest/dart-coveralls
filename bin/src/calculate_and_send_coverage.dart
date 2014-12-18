@@ -57,13 +57,18 @@ class ReportPart extends Object with CommandLinePart {
     // We don't print out the token here as it could end up in public build logs.
     log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
     
+    var errorFunction = (e) {
+      if (throwOnError) throw e;
+    };
+    
     try {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
       commandLineClient.reportToCoveralls(file, workers: workers,
           dryRun: dryRun, retry: retry,
-          throwOnConnectivityError: throwOnConnectivityError);
+          throwOnConnectivityError: throwOnConnectivityError)
+          .catchError(errorFunction);
     } catch (e) {
-      if (throwOnError) throw e;
+      errorFunction(e);
     }
   }
 }

@@ -3,7 +3,7 @@ name: dart_coveralls
 executables:
   dart_coveralls:
 
-version: 0.1.5
+version: 0.1.6
 author: Axel Christ <adracus@gmail.com>
 description: |-
   Pub package to calculate coverage, format it
