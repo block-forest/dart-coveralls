@@ -26,7 +26,7 @@ class CoverallsEndpoint {
   Future sendToCoveralls(String json) {
     var req = getCoverallsRequest(json);
     return req.send().asStream().toList().then((responses) {
-      responses.single.stream.toList().then((intValues) {
+      return responses.single.stream.toList().then((intValues) {
         var msg = stringFromIntLines(intValues);
         if (200 == responses.single.statusCode) return log.info("200 OK");
         throw new Exception(responses.single.reasonPhrase + "\n$msg");

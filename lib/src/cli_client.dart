@@ -51,24 +51,29 @@ class CommandLineClient {
   
   Future reportToCoveralls(File testFile, 
         {int workers, ProcessSystem processSystem: const ProcessSystem(),
-          String coverallsAddress, bool dryRun: false}) {
+          String coverallsAddress, bool dryRun: false,
+          bool throwOnConnectivityError: false, int retry: 0}) {
     return getRawLcov(testFile, workers: workers,
         processSystem: processSystem).then((rawLcov) {
       var lcov = LcovDocument.parse(rawLcov.toString());
       var report = CoverallsReport.parse(token, lcov, packageRoot,
           serviceName);
       var endpoint = new CoverallsEndpoint(coverallsAddress);
-      print(report.covString());
       if (dryRun) return new Future.value();
-      return _sendLoop(endpoint, report.covString());
+      var f = _sendLoop(endpoint, report.covString(), retry: retry);
+      if (!throwOnConnectivityError) f.catchError((e) => print("Caught $e"));
     });
   }
   
   Future _sendLoop(CoverallsEndpoint endpoint, String covString,
-                   [Completer completer]) {
+                   {Completer completer, int retry: 0}) {
     if (null == completer) completer = new Completer();
     endpoint.sendToCoveralls(covString).then((_) => completer.complete())
-            .catchError(() => _sendLoop(endpoint, covString, completer));
+            .catchError((e) {
+      if (0 == retry) return completer.completeError(e);
+      return _sendLoop(endpoint, covString,
+          completer: completer, retry: retry - 1);
+    });
     return completer.future;
   }
 }

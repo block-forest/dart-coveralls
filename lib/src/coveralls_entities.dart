@@ -59,11 +59,27 @@ class SourceFile implements CoverallsReportable {
   
   static SourceFile parse(String heading, Directory packageRoot,
                    {FileSystem fileSystem: const FileSystem()}) {
-    var name = heading.split(":").last;
-    var sourceFile = getSourceFile(name, packageRoot,
+    var path = heading.split(":").last;
+    var name = resolveName(path, packageRoot, fileSystem: fileSystem);
+    var sourceFile = getSourceFile(path, packageRoot,
         fileSystem: fileSystem);
     var source = sourceFile.readAsStringSync();
     return new SourceFile(name, source);
+  }
+  
+  
+  static String resolveName(String path, Directory packageRoot,
+                            {FileSystem fileSystem: const FileSystem()}) {
+    var file = fileSystem.getFile(path);
+    var sep = Platform.pathSeparator;
+    if (!file.isAbsolute) {
+      var packagePath = packageRoot.path + "${sep}packages$sep$path";
+      file = fileSystem.getFile(packagePath);
+      file = fileSystem.getFile(file.resolveSymbolicLinksSync());
+    }
+    var ctx = new Context(current: packageRoot.absolute.path);
+    var name = ctx.relative(file.path);
+    return name;
   }
   
   
