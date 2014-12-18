@@ -23,7 +23,7 @@ class CommandLineClient {
         serviceName = getServiceName(environment),
         token = getToken(token, environment);
   
-  Future<String> getRawLcov(File testFile,
+  Future<CoverageResult<String>> getLcovResult(File testFile,
       {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
     var collector = new LcovCollector(packageRoot, testFile,
         fileSystem: fileSystem, processSystem: processSystem);
@@ -37,7 +37,7 @@ class CommandLineClient {
   /// environment for "REPO_TOKEN" and returns the content of it. If
   /// the given environment is null, it will be [Platform].environment.
   static String getToken(String candidate, [Map<String, String> environment]) {
-    if (candidate != null) return candidate;
+    if (candidate != null && candidate.isNotEmpty) return candidate;
     if (null == environment) environment = Platform.environment;
     return environment["REPO_TOKEN"];
   }
@@ -53,9 +53,10 @@ class CommandLineClient {
         {int workers, ProcessSystem processSystem: const ProcessSystem(),
           String coverallsAddress, bool dryRun: false,
           bool throwOnConnectivityError: false, int retry: 0}) {
-    return getRawLcov(testFile, workers: workers,
+    return getLcovResult(testFile, workers: workers,
         processSystem: processSystem).then((rawLcov) {
-      var lcov = LcovDocument.parse(rawLcov.toString());
+      print(rawLcov.processResult.stdout);
+      var lcov = LcovDocument.parse(rawLcov.result.toString());
       var report = CoverallsReport.parse(token, lcov, packageRoot,
           serviceName);
       var endpoint = new CoverallsEndpoint(coverallsAddress);

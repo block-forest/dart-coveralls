@@ -62,25 +62,26 @@ class LcovCollector {
   /// 
   /// Calculates and returns LCOV information of the tested [File].
   /// This uses [workers] to parse the collected information.
-  Future<String> getLcovInformation({int workers: 1}) {
+  Future<CoverageResult<String>> getLcovInformation({int workers: 1}) {
     var reportFile = getCoverageJson();
-    return parseCoverage([reportFile], workers).then((hitmap) {
+    return parseCoverage([reportFile.result], workers).then((hitmap) {
       var resolver = new Resolver(packageRoot: packageRoot.path,
           sdkRoot: sdkRoot);
       var formatter = new LcovFormatter(resolver);
-      reportFile.deleteSync();
-      return formatter.format(hitmap);
+      reportFile.result.deleteSync();
+      return formatter.format(hitmap).then((res) => new CoverageResult(res,
+          reportFile.processResult));
     });
   }
   
   /// Generates and returns a coverage json file
-  File getCoverageJson() {
+  CoverageResult<File> getCoverageJson() {
     var current = fileSystem.getDirectory(fileSystem.currentDirectory);
     var args = ["--enable-vm-service:9999",
         "--coverage_dir=${current.path}", testFile.absolute.path];
-    processSystem.runProcessSync("dart", args);
+    var process = processSystem.runProcessSync("dart", args);
     var reportFile = getYoungestDartCoverageFile(current);
-    return reportFile;
+    return new CoverageResult<File>(reportFile, process);
   }
   
   
@@ -131,4 +132,12 @@ class LcovCollector {
       return join(absolute(normalize(environment["DART_SDK"])), "lib");
     return null;
   }
+}
+
+
+class CoverageResult<E> {
+  final E result;
+  final ProcessResult processResult;
+  
+  CoverageResult(this.result, this.processResult);
 }
