@@ -19,7 +19,7 @@ void expectLineValue(LineValue lv, int lineNumber, int lineCount) {
 
 
 main() {
-  group("Top Level Function", () {
+  group("SourceFileReports", () {
     test("getPackageName", () {
       var fileSystem = new FileSystemMock();
       var fileMock = new FileMock();
@@ -31,7 +31,7 @@ main() {
       fileSystem.when(callsTo("getFile", "./pubspec.yaml"))
                 .thenReturn(fileMock);
       
-      var name = getPackageName(dirMock, fileSystem);
+      var name = SourceFileReports.getPackageName(dirMock, fileSystem);
       expect(name, equals("dart_coveralls"));
       fileSystem.getLogs(callsTo("getFile", "./pubspec.yaml"))
                 .verify(happenedOnce);
@@ -40,31 +40,19 @@ main() {
       dirMock.getLogs(callsTo("get path"))
              .verify(happenedOnce);
     });
-    
-    group("getToken", () {
-      test("with candidate", () {
-        var t1 = getToken("test");
-        expect(t1, equals("test"));
-      });
-      
-      test("without candidate", () {
-        var t2 = getToken(null, {"REPO_TOKEN": "test"});
-        expect(t2, equals("test"));
-      });
-    });
   });
   
   group("LineValue", () {
     test("fromLcovNumeration", () {
       var str = "DA:27,0";
-      var lineValue = new LineValue.fromLcovNumerationLine(str);
+      var lineValue = LineValue.parse(str);
       
       expectLineValue(lineValue, 27, 0);
     });
     
     test("covString", () {
       var str = "DA:27,0";
-      var lineValue1 = new LineValue.fromLcovNumerationLine(str);
+      var lineValue1 = LineValue.parse(str);
       var lineValue2 = new LineValue.noCount(10);
       
       expect(lineValue1.covString(), equals("0"));
@@ -74,8 +62,8 @@ main() {
   
   group("Coverage", () {
     test("fromLcovNumeration", () {
-      var strings = ["DA:3,3", "DA:4,5", "DA:6,3"];
-      var coverage = new Coverage.fromLcovNumeration(strings);
+      var str = "DA:3,3\nDA:4,5\nDA:6,3";
+      var coverage = Coverage.parse(str);
       var values = coverage.values;
       expectLineValue(values[0], 1, null);
       expectLineValue(values[1], 2, null);
@@ -86,8 +74,8 @@ main() {
     });
     
     test("covString", () {
-      var strings = ["DA:3,3", "DA:4,5", "DA:6,3"];
-      var coverage = new Coverage.fromLcovNumeration(strings);
+      var str = "DA:3,3\nDA:4,5\nDA:6,3";
+      var coverage = Coverage.parse(str);
       
       expect(coverage.covString(),
           equals("\"coverage\": [null, null, 3, 5, null, 3]"));
@@ -219,14 +207,30 @@ main() {
     });
   });
   
-  group("CoverallsReport", () {
+  group("CommandLineClient", () {
     test("getServiceName", () {
-      var s1 = CoverallsReport.getServiceName();
-      var s2 = CoverallsReport.getServiceName({"COVERALLS_SERVICE_NAME": "name"});
+      var s1 = CommandLineClient.getServiceName();
+      var s2 = CommandLineClient.getServiceName(
+          {"COVERALLS_SERVICE_NAME": "name"});
       
       expect(s1, equals("local"));
       expect(s2, equals("name"));
     });
+    
+    group("getToken", () {
+      test("with candidate", () {
+        var t1 = CommandLineClient.getToken("test");
+        expect(t1, equals("test"));
+      });
+      
+      test("without candidate", () {
+        var t2 = CommandLineClient.getToken(null, {"REPO_TOKEN": "test"});
+        expect(t2, equals("test"));
+      });
+    });
+  });
+  
+  group("CoverallsReport", () {
     
     test("covString", () {
       var sourceFileReports = new SourceFilesReportsMock();
@@ -236,62 +240,14 @@ main() {
       gitDataMock.when(callsTo("covString"))
                  .thenReturn("{gitDataCovString}");
       
-      var report = new CoverallsReport("token", sourceFileReports, gitDataMock);
+      var report = new CoverallsReport("token", sourceFileReports,
+          gitDataMock, "local");
       
       var covString = report.covString();
       
       expect(covString, equals('{"repo_token": "token", {sourceFileCovString}, ' +
                                '"git": {gitDataCovString}, ' +
                                '"service_name": "local"}'));
-    });
-    
-    test("writeToFile", () {
-      var covString = '{"repo_token": "token", {sourceFileCovString}, ' +
-          '"git": {gitDataCovString}, ' +
-          '"service_name": "local"}';
-      var sourceFileReports = new SourceFilesReportsMock();
-      sourceFileReports.when(callsTo("covString"))
-                       .thenReturn("{sourceFileCovString}");
-      var gitDataMock = new GitDataMock();
-      gitDataMock.when(callsTo("covString"))
-                 .thenReturn("{gitDataCovString}");
-      var report = new CoverallsReport("token", sourceFileReports, gitDataMock);
-      var fileMock = new FileMock();
-      var fileSystem = new FileSystemMock();
-      fileMock.when(callsTo("createSync")).thenReturn(null);
-      fileMock.when(callsTo("writeAsStringSync", covString)).thenReturn(null);
-      
-      fileSystem.when(callsTo("getFile", ".tempReport"))
-                .thenReturn(fileMock);
-      
-      report.writeToFile(fileSystem);
-      
-      fileMock.getLogs(callsTo("createSync")).verify(happenedOnce);
-      fileMock.getLogs(callsTo("writeAsStringSync", covString))
-              .verify(happenedOnce);
-    });
-    
-    test("getCoverallsRequest", () {
-      var sourceFileReports = new SourceFilesReportsMock();
-      sourceFileReports.when(callsTo("covString"))
-                       .thenReturn("{sourceFileCovString}");
-      var gitDataMock = new GitDataMock();
-      gitDataMock.when(callsTo("covString"))
-                 .thenReturn("{gitDataCovString}");
-      var report = new CoverallsReport("token", sourceFileReports, gitDataMock);
-      
-      var request = report.getCoverallsRequest(address: "www.example.com",
-          json: '{"some": "json"}');
-      
-      expect(request.files.length, equals(1));
-      expect(request.files.single.field, equals("json_file"));
-      
-      request.files.single.finalize().toList().then(
-          expectAsync((List<List<int>> vals) {
-        var str = vals.map((vals2) => new String.fromCharCodes(vals2))
-                      .join("\n");
-        expect(str, equals('{"some": "json"}'));
-      }));
     });
   });
 }

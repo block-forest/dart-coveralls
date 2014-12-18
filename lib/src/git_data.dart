@@ -1,4 +1,10 @@
-part of dart_coveralls;
+library dart_coveralls.git_data;
+
+import 'dart:io' show Directory, ProcessException;
+import 'dart:convert' show JSON;
+import 'package:dart_coveralls/dart_coveralls.dart';
+import 'package:dart_coveralls/src/coveralls_entities.dart';
+import 'package:dart_coveralls/process_system.dart';
 
 
 abstract class GitPerson implements CoverallsReportable {
@@ -14,11 +20,15 @@ abstract class GitPerson implements CoverallsReportable {
         mail = getPersonMail(str);
   
   
-  static String getPersonName(String str) =>
-      str.split("<")[0].trim();
+  static String getPersonName(String str) {
+    if (-1 == str.indexOf("<")) return "Unknown";
+    return str.split("<")[0].trim();
+  }
   
   static String getPersonMail(String str) {
-    var mail = new RegExp(r"<(.*?)>").firstMatch(str).group(0);
+    var mailCandidate = new RegExp(r"<(.*?)>").firstMatch(str);
+    if (null == mailCandidate) return "Unknown";
+    var mail = mailCandidate.group(0);
     return mail.substring(1, mail.length - 1);
   }
 }
@@ -73,6 +83,7 @@ class GitCommit implements CoverallsReportable {
   
   
   static GitCommit parse(String commitString) {
+    log.info(() => "Parsing commit $commitString");
     var lines = commitString.split("\n");
     var id = lines.first.split(" ").last;
     var author = new GitAuthor.fromPersonString(lines[1]);

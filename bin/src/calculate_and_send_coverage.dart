@@ -35,7 +35,9 @@ class ReportPart extends Object with CommandLinePart {
     
     var pRoot = new Directory(res["package-root"]);
     var file = new File(res.rest.single);
-    var token = getToken(res["token"]);
+    var token = res["token"];
+    var workers = int.parse(res["workers"]);
+    var dryRun = res["dry-run"];
     
     if (!pRoot.existsSync()) return print("Root directory does not exist");
     log.info(() => "Package root is ${pRoot.absolute.path}");
@@ -44,11 +46,8 @@ class ReportPart extends Object with CommandLinePart {
     if (token == null) return print("Please specify a repo token");
     log.info("Token is $token");
     
-    return getLcovInformation(int.parse(res["workers"]), file, pRoot).then((r) {
-      var report = CoverallsReport.getReportFromLcovString(token,
-          r.toString(), pRoot);
-      if (!res["dry-run"])
-        report.sendToCoveralls(retryCount: int.parse(res["retry"]));
-    });
+    var commandLineClient = new CommandLineClient(pRoot, token: token);
+    commandLineClient.reportToCoveralls(file, workers: workers,
+        dryRun: dryRun);
   }
 }
