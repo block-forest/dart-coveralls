@@ -88,8 +88,16 @@ class GitCommit implements CoverallsReportable {
     var id = lines.first.split(" ").last;
     var author = new GitAuthor.fromPersonString(lines[1]);
     var committer = new GitCommitter.fromPersonString(lines[2]);
-    var message = lines.sublist(4).join("\n");
+    var message = lines.sublist(4, getDiffStart(lines)).join("\n");
     return new GitCommit(id, author, committer, message);
+  }
+  
+  
+  static int getDiffStart(List<String> lines) {
+    for (int i = 0; i < lines.length; i++) {
+      if (lines[i].startsWith("diff --git")) return i;
+    }
+    return lines.length;
   }
   
   
