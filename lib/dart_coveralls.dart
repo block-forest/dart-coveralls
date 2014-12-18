@@ -11,8 +11,6 @@ import 'package:logging/logging.dart';
 import 'package:mockable_filesystem/filesystem.dart';
 import 'process_system.dart';
 
-export 'package:logging/logging.dart';
-
 part "git_data.dart";
 
 final Logger log = new Logger("dart_coveralls");
