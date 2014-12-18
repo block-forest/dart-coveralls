@@ -61,9 +61,11 @@ class CommandLineClient {
           serviceName);
       var endpoint = new CoverallsEndpoint(coverallsAddress);
       if (dryRun) return new Future.value();
-      var f = _sendLoop(endpoint, report.covString(), retry: retry);
-      if (!throwOnConnectivityError)
-        f.catchError((e) => print("Caught $e"));
+      return _sendLoop(endpoint, report.covString(), retry: retry)
+          .catchError((e) {
+        if (throwOnConnectivityError) throw e;
+        print("Caught $e");
+      });
     });
   }
   
