@@ -1,6 +1,6 @@
 library dart_coveralls.git_data;
 
-import 'dart:io' show Directory, ProcessException;
+import 'dart:io' show Directory, ProcessException, Platform;
 import 'dart:convert' show JSON;
 import 'package:dart_coveralls/dart_coveralls.dart';
 import 'package:dart_coveralls/src/coveralls_entities.dart';
@@ -154,14 +154,19 @@ class GitBranch {
   GitBranch(this.name, this.reference, this.id);
   
   static String getCurrentBranchName(Directory dir,
-    {ProcessSystem processSystem: const ProcessSystem()}) {
-    var args = ["show", "-s", "--pretty=%d", "HEAD"];
+    {ProcessSystem processSystem: const ProcessSystem(),
+     Map<String, String> environment}) {
+    if (null == environment) environment = Platform.environment;
+    if (null != environment["TRAVIS_BRANCH"])
+      return environment["TRAVIS_BRANCH"];
+    var args = ["rev-parse", "--abbrev-ref", "HEAD"];
     var result = processSystem.runProcessSync("git", args,
         workingDirectory: dir.path);
     if (0 != result.exitCode)
       throw new ProcessException("git", args, result.stderr,
           result.exitCode);
-    return parseRefResult(result.stdout);
+    var name = (result.stdout as String).trim();
+    return name;
   }
   
   static GitBranch getCurrent(Directory dir,
@@ -177,12 +182,6 @@ class GitBranch {
     var id = parts[0];
     var ref = parts[1];
     return new GitBranch(name, ref, id);
-  }
-  
-  static String parseRefResult(String refResult) {
-    var inside = refResult.replaceAll(new RegExp(r"\(|\)|\s|\\n"), "");
-    var parts = inside.split(",");
-    return parts.last.trim();
   }
 }
 
