@@ -41,6 +41,7 @@ dart dart_coveralls.dart report [--workers, --token, --package-root, --debug, --
   error with coveralls?
 * `--throw-on-error`: Should this throw if there is an error in the dart
   coveralls library?
+* `--exclude-test-files`: Should test files be excluded for the coveralls report?
 * `test.dart`: The path of the test file on which coverage will be collected
 
 ### Contributing

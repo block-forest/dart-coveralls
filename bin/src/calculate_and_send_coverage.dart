@@ -31,7 +31,7 @@ class ReportPart extends Object with CommandLinePart {
       ..addFlag("throw-on-error", help: "Should this throw if " +
           "an error in the dart_coveralls implementation happens?",
           negatable: false, abbr: "E")
-      ..addFlag("include-test-files", abbr: "T", help: "Should test files " +
+      ..addFlag("exclude-test-files", abbr: "T", help: "Should test files " +
           "be included in the coveralls report?", negatable: false);
     return _parser;
   }
@@ -51,7 +51,7 @@ class ReportPart extends Object with CommandLinePart {
     var retry = int.parse(res["retry"]);
     var throwOnError = res["throw-on-error"];
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
-    var includeTestFiles = res["inclulde-test-files"];
+    var excludeTestFiles = res["inclulde-test-files"];
     
     if (!pRoot.existsSync()) return print("Root directory does not exist");
     log.info(() => "Package root is ${pRoot.absolute.path}");
@@ -70,7 +70,7 @@ class ReportPart extends Object with CommandLinePart {
       commandLineClient.reportToCoveralls(file, workers: workers,
           dryRun: dryRun, retry: retry,
           throwOnConnectivityError: throwOnConnectivityError,
-          includeTestFiles: includeTestFiles)
+          excludeTestFiles: excludeTestFiles)
           .catchError(errorFunction);
     } catch (e) {
       errorFunction(e);

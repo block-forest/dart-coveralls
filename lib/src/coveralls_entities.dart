@@ -33,12 +33,12 @@ class SourceFileReport implements CoverallsReportable {
   
   static bool isPartOfInterest(LcovPart lcovPart, String packageName,
                                  {FileSystem fileSystem: const FileSystem(),
-                                  bool includeTestFiles: true}) {
+                                  bool excludeTestFiles: true}) {
     var path = lcovPart.heading.split(":").last;
     var file = fileSystem.getFile(path);
     if (file.isAbsolute) {
-      if (includeTestFiles) return true;
-      return false;
+      if (excludeTestFiles) return false;
+      return true;
     }
     if (path.startsWith(packageName)) {
       log.info("ADDING $path");
@@ -182,11 +182,11 @@ class SourceFileReports implements CoverallsReportable {
   
   
   static SourceFileReports parse(LcovDocument lcov, Directory packageRoot,
-                                 {bool includeTestFiles: true}) {
+                                 {bool excludeTestFiles: false}) {
     var packageName = getPackageName(packageRoot);
     var relevantParts = lcov.parts.where((part) =>
         SourceFileReport.isPartOfInterest(part, packageName,
-            includeTestFiles: includeTestFiles));
+            excludeTestFiles: excludeTestFiles));
     var reports = relevantParts.map((part) =>
         SourceFileReport.parse(part, packageRoot)).toList();
     return new SourceFileReports(reports);
@@ -224,11 +224,11 @@ class CoverallsReport implements CoverallsReportable {
   
   static CoverallsReport parse(String repoToken, LcovDocument lcov,
       Directory packageRoot, String serviceName,
-      {bool includeTestFiles: true}) {
+      {bool excludeTestFiles: false}) {
     var gitData = GitData.getGitData(packageRoot);
     var dirName = basename(packageRoot.path);
     var reports = SourceFileReports.parse(lcov, packageRoot,
-        includeTestFiles: includeTestFiles);
+        excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData, serviceName);
   }
   
