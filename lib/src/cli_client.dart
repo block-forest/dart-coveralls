@@ -52,13 +52,14 @@ class CommandLineClient {
   Future reportToCoveralls(File testFile, 
         {int workers, ProcessSystem processSystem: const ProcessSystem(),
           String coverallsAddress, bool dryRun: false,
-          bool throwOnConnectivityError: false, int retry: 0}) {
+          bool throwOnConnectivityError: false, int retry: 0,
+          bool includeTestFiles: true}) {
     return getLcovResult(testFile, workers: workers,
         processSystem: processSystem).then((rawLcov) {
       print(rawLcov.processResult.stdout);
       var lcov = LcovDocument.parse(rawLcov.result.toString());
       var report = CoverallsReport.parse(token, lcov, packageRoot,
-          serviceName);
+          serviceName, includeTestFiles: includeTestFiles);
       var endpoint = new CoverallsEndpoint(coverallsAddress);
       if (dryRun) return new Future.value();
       return _sendLoop(endpoint, report.covString(), retry: retry)

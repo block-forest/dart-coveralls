@@ -36,7 +36,7 @@ class CalcPart extends Object with CommandLinePart {
     
     return collector.getLcovInformation(workers: workers).then((r) {
       if (res["output"] != null) {
-        return new File(res["output"]).writeAsStringSync(r);
+        return new File(res["output"]).writeAsStringSync(r.toString());
       }
       return print(r);
     });
