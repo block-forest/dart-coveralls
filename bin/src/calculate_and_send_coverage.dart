@@ -51,7 +51,7 @@ class ReportPart extends Object with CommandLinePart {
     var retry = int.parse(res["retry"]);
     var throwOnError = res["throw-on-error"];
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
-    var excludeTestFiles = res["inclulde-test-files"];
+    var excludeTestFiles = res["exclude-test-files"];
     
     if (!pRoot.existsSync()) return print("Root directory does not exist");
     log.info(() => "Package root is ${pRoot.absolute.path}");
