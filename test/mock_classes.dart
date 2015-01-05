@@ -1,6 +1,5 @@
 part of dart_coveralls.test;
 
-
 @proxy
 class FileSystemMock extends Mock implements FileSystem {
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
