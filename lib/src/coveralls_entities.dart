@@ -201,7 +201,6 @@ class CoverallsReport implements CoverallsReportable {
       Directory packageRoot, String serviceName,
       {bool excludeTestFiles: false}) {
     var gitData = GitData.getGitData(packageRoot);
-    var dirName = basename(packageRoot.path);
     var reports = SourceFileReports.parse(lcov, packageRoot,
         excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData, serviceName);
