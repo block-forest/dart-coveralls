@@ -6,7 +6,7 @@ import "package:dart_coveralls/dart_coveralls.dart";
 import "package:unittest/unittest.dart";
 import "package:mock/mock.dart";
 import "package:mockable_filesystem/mock_filesystem.dart";
-import "package:dart_coveralls/process_system.dart";
+import "package:dart_coveralls/src/process_system.dart";
 
 part "mock_classes.dart";
 

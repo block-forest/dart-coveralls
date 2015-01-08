@@ -1,13 +1,15 @@
 library dart_coveralls.coveralls_endpoint;
 
 import 'dart:async' show Future;
-import 'package:dart_coveralls/dart_coveralls.dart';
+
 import 'package:http/http.dart' show MultipartRequest, MultipartFile;
+
+import 'log.dart';
 
 class CoverallsEndpoint {
   static const String COVERALLS_ADDRESS = "https://coveralls.io/api/v1/jobs";
 
-  Uri coverallsAddress;
+  final Uri coverallsAddress;
 
   CoverallsEndpoint([coverallsAddress = COVERALLS_ADDRESS])
       : coverallsAddress = coverallsAddress is Uri ? coverallsAddress :
@@ -36,7 +38,6 @@ class CoverallsEndpoint {
   }
 
   String stringFromIntLines(List<List<int>> lines) {
-    var msg = lines.map((line) => new String.fromCharCodes(line)).join("\n");
-    return msg;
+    return lines.map((line) => new String.fromCharCodes(line)).join("\n");
   }
 }

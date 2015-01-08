@@ -1,7 +1,9 @@
 library dart_coveralls.report;
 
 import 'dart:io';
+
 import 'package:dart_coveralls/dart_coveralls.dart';
+
 import "command_line.dart";
 
 class ReportPart extends Object with CommandLinePart {
@@ -40,7 +42,7 @@ class ReportPart extends Object with CommandLinePart {
     return _parser;
   }
 
-  execute(ArgResults res) {
+  void execute(ArgResults res) {
     if (res["help"]) return print(parser.usage);
     if (res.rest.length != 1) return print(parser.usage);
     if (res["debug"]) {

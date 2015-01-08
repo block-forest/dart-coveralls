@@ -2,10 +2,14 @@ library dart_coveralls.coveralls_entities;
 
 import 'dart:convert' show JSON;
 import 'dart:io' show Directory, File, Platform;
-import 'package:dart_coveralls/dart_coveralls.dart';
+
 import 'package:mockable_filesystem/filesystem.dart';
 import 'package:path/path.dart';
 import 'package:yaml/yaml.dart';
+
+import 'collect_lcov.dart';
+import 'git_data.dart';
+import 'log.dart';
 
 /// An interface for Coveralls-Convertable Entity
 abstract class CoverallsReportable {

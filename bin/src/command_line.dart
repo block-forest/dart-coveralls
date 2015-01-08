@@ -7,9 +7,9 @@ export "package:args/args.dart";
 abstract class CommandLinePart {
   ArgParser get parser;
 
-  parseAndExecute(List<String> args) => execute(parser.parse(args));
+  void parseAndExecute(List<String> args) => execute(parser.parse(args));
 
-  execute(ArgResults res);
+  void execute(ArgResults res);
 }
 
 class CommandLineHubBuilder {
@@ -34,7 +34,7 @@ class CommandLineHub extends Object with CommandLinePart {
         parser = _initializeParser(parts),
         _usage = "Possible commands are: ${parts.keys.join(", ")}";
 
-  execute(ArgResults results) {
+  void execute(ArgResults results) {
     if (results["help"]) return print(_usage);
     if (null == results.command) {
       return print(_usage);

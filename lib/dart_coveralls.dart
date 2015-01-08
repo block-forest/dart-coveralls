@@ -1,8 +1,8 @@
-import 'package:logging/logging.dart';
+library dart_coveralls;
+
+export 'src/cli_client.dart';
 export 'src/collect_lcov.dart';
 export 'src/coveralls_endpoint.dart';
-export 'src/git_data.dart';
-export 'src/cli_client.dart';
 export 'src/coveralls_entities.dart';
-
-final Logger log = new Logger("dart_coveralls");
+export 'src/git_data.dart';
+export 'src/log.dart';
