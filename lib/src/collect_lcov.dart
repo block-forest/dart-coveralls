@@ -1,11 +1,13 @@
 library dart_coveralls.lcov;
 
-import "dart:io";
 import "dart:async" show Future;
-import "package:path/path.dart";
-import "package:dart_coveralls/process_system.dart";
-import "package:mockable_filesystem/filesystem.dart" show FileSystem;
+import "dart:io";
+
 import "package:coverage/coverage.dart";
+import "package:mockable_filesystem/filesystem.dart" show FileSystem;
+import "package:path/path.dart";
+
+import "process_system.dart";
 
 class LcovDocument {
   final List<LcovPart> parts;

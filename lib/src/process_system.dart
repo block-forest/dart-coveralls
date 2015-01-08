@@ -1,8 +1,8 @@
-library process_system;
+library coveralls.process_system;
 
-import "dart:io" show Process, ProcessResult, SYSTEM_ENCODING;
-import "dart:convert" show Encoding;
 import "dart:async" show Future;
+import "dart:convert" show Encoding;
+import "dart:io" show Process, ProcessResult, SYSTEM_ENCODING;
 
 class ProcessSystem {
   const ProcessSystem();

@@ -1,10 +1,11 @@
 library dart_coveralls.git_data;
 
-import 'dart:io' show Directory, ProcessException, Platform;
 import 'dart:convert' show JSON;
-import 'package:dart_coveralls/dart_coveralls.dart';
-import 'package:dart_coveralls/src/coveralls_entities.dart';
-import 'package:dart_coveralls/process_system.dart';
+import 'dart:io' show Directory, ProcessException, Platform;
+
+import 'coveralls_entities.dart';
+import 'log.dart';
+import 'process_system.dart';
 
 abstract class GitPerson implements CoverallsReportable {
   final String name;

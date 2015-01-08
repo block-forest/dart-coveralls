@@ -1,7 +1,9 @@
 library dart_coveralls.calc;
 
 import 'dart:io';
+
 import 'package:dart_coveralls/dart_coveralls.dart';
+
 import 'command_line.dart';
 
 class CalcPart extends Object with CommandLinePart {

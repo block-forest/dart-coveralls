@@ -1,12 +1,14 @@
 library dart_coveralls.cli_client;
 
-import 'dart:io';
 import 'dart:async' show Future, Completer;
-import 'package:dart_coveralls/src/collect_lcov.dart';
+import 'dart:io';
+
 import 'package:mockable_filesystem/filesystem.dart';
-import 'package:dart_coveralls/process_system.dart';
-import 'package:dart_coveralls/src/coveralls_entities.dart';
-import 'package:dart_coveralls/src/coveralls_endpoint.dart';
+
+import 'collect_lcov.dart';
+import 'coveralls_entities.dart';
+import 'coveralls_endpoint.dart';
+import 'process_system.dart';
 
 class CommandLineClient {
   final FileSystem fileSystem;
