@@ -39,7 +39,7 @@ class CalcPart extends Object with CommandLinePart {
       if (res["output"] != null) {
         return new File(res["output"]).writeAsStringSync(r.toString());
       }
-      return print(r);
+      return print(r.toString());
     });
   }
 }

@@ -1,6 +1,7 @@
 library dart_coveralls.report;
 
 import 'dart:io';
+import 'dart:async' show runZoned;
 
 import 'package:dart_coveralls/dart_coveralls.dart';
 
@@ -73,14 +74,15 @@ class ReportPart extends Object with CommandLinePart {
 
     try {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
-      commandLineClient
-          .reportToCoveralls(file,
-              workers: workers,
-              dryRun: dryRun,
-              retry: retry,
-              throwOnConnectivityError: throwOnConnectivityError,
-              excludeTestFiles: excludeTestFiles)
-          .catchError(errorFunction);
+      runZoned(() {
+        commandLineClient
+                .reportToCoveralls(file,
+                    workers: workers,
+                    dryRun: dryRun,
+                    retry: retry,
+                    throwOnConnectivityError: throwOnConnectivityError,
+                    excludeTestFiles: excludeTestFiles);
+      }, onError: errorFunction);
     } catch (e) {
       errorFunction(e);
     }
