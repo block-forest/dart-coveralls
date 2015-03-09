@@ -26,6 +26,65 @@ FileMock absoluteMock(String path, String absolutePath) {
 main() => defineTests();
 
 defineTests() {
+  group("PackageDartFiles", () {
+    var testFiles = [
+      absoluteMock("test/test.dart",
+          "/home/user/dart/dart_coveralls/test/test.dart"),
+      absoluteMock("test/other_test.dart",
+          "/home/user/dart/dart_coveralls/test/other_test.dart")];
+    var implFiles = [
+      absoluteMock("lib/program.dart",
+          "/home/user/dart/dart_coveralls/lib/program.dart")];
+    var dartFiles = new PackageDartFiles(testFiles, implFiles);
+    
+    test("isTestFile", () {
+      expect(dartFiles.isTestFile(
+        absoluteMock("test.dart",
+                     "/home/user/dart/dart_coveralls/test/test.dart")),
+                     isTrue);
+      expect(dartFiles.isTestFile(
+        absoluteMock("test.dart",
+                     "/home/user/dart/dart_coveralls/lib/program.dart")),
+                     isFalse);
+    });
+    
+    test("isImplementationFile", () {
+      expect(dartFiles.isImplementationFile(
+        absoluteMock("test.dart",
+                     "/home/user/dart/dart_coveralls/test/test.dart")),
+                     isFalse);
+      expect(dartFiles.isImplementationFile(
+        absoluteMock("program.dart",
+                     "/home/user/dart/dart_coveralls/lib/program.dart")),
+                     isTrue);
+    });
+    
+    test("isSameAbsolutePath", () {
+      var f1 = absoluteMock("test.dart", "/root/test.dart");
+      var f2 = absoluteMock("./test.dart", "/root/./test.dart");
+      var f3 = absoluteMock("nottest.dart", "/root/nottest.dart");
+      
+      expect(PackageDartFiles.sameAbsolutePath(f1, f2), isTrue);
+      f1.calls("get absolute").verify(happenedOnce);
+      f2.calls("get absolute").verify(happenedOnce);
+      expect(PackageDartFiles.sameAbsolutePath(f1, f3), isFalse);
+    });
+    
+    test("isTestDirectory", () {
+      var testDir = new DirectoryMock()
+        ..when(callsTo("get path")).thenReturn("test");
+      var notTestDir = new DirectoryMock()
+        ..when(callsTo("get path")).thenReturn("nottest");
+      var fileMock = new FileMock();
+      
+      expect(PackageDartFiles.isTestDirectory(testDir), isTrue);
+      expect(PackageDartFiles.isTestDirectory(notTestDir), isFalse);
+      expect(PackageDartFiles.isTestDirectory(fileMock), isFalse);
+      testDir.calls("get path").verify(happenedOnce);
+      notTestDir.calls("get path").verify(happenedOnce);
+    });
+  });
+  
   group("PackageFilter", () {
       test("getPackageName", () {
         var fileSystem = new FileSystemMock();
