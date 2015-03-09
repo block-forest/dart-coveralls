@@ -43,6 +43,8 @@ class LcovPart {
 
     return new LcovPart(heading, content);
   }
+  
+  String get fileName => heading.split(":").last;
 
   String toString() => heading;
 }

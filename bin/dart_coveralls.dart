@@ -1,6 +1,6 @@
 import "src/command_line.dart";
-import "src/calculate_coverage.dart";
-import "src/calculate_and_send_coverage.dart";
+import "src/calc.dart";
+import "src/report.dart";
 
 void main(List<String> args) {
   var builder = new CommandLineHubBuilder();
