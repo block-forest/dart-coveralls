@@ -45,7 +45,7 @@ class ReportPart extends Object with CommandLinePart {
 
   void execute(ArgResults res) {
     if (res["help"]) return print(parser.usage);
-    if (res.rest.length != 1) return print(parser.usage);
+    if (res.rest.length != 1) return print("Please specify a test file to run");
     if (res["debug"]) {
       log.onRecord.listen((rec) => print(rec));
     }

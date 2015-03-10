@@ -24,7 +24,7 @@ class CalcPart extends Object with CommandLinePart {
   }
 
   execute(ArgResults res) {
-    if (res.rest.length != 1) return print(parser.usage);
+    if (res.rest.length != 1) return print("Please specify a test file to run");
 
     var pRoot = new Directory(res["package-root"]);
     var file = new File(res.rest.single);
