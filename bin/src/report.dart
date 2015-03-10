@@ -52,9 +52,9 @@ class ReportPart extends Object with CommandLinePart {
 
     var pRoot = new Directory(res["package-root"]);
     var file = new File(res.rest.single);
+    var dryRun = res["dry-run"];
     var token = res["token"];
     var workers = int.parse(res["workers"]);
-    var dryRun = res["dry-run"];
     var retry = int.parse(res["retry"]);
     var throwOnError = res["throw-on-error"];
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
@@ -64,7 +64,10 @@ class ReportPart extends Object with CommandLinePart {
     log.info(() => "Package root is ${pRoot.absolute.path}");
     if (!file.existsSync()) return print("Dart file does not exist");
     log.info(() => "Evaluated dart file is ${file.absolute.path}");
-    if (token == null) return print("Please specify a repo token");
+    if (token == null) {
+      if (!dryRun) return print("Please specify a repo token");
+      token = "test";
+    }
     // We don't print out the token here as it could end up in public build logs.
     log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
 
