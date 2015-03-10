@@ -36,10 +36,11 @@ class CalcPart extends Object with CommandLinePart {
     var collector = new LcovCollector(pRoot, file);
 
     return collector.getLcovInformation(workers: workers).then((r) {
+      print(r.processResult.stdout);
       if (res["output"] != null) {
-        return new File(res["output"]).writeAsStringSync(r.toString());
+        return new File(res["output"]).writeAsStringSync(r.result);
       }
-      return print(r.toString());
+      return print(r.result);
     });
   }
 }
