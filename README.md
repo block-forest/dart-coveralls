@@ -7,13 +7,15 @@ Calculate coverage of your dart scripts, format it to LCOV and send it to
 
 ### Usage
 This package consists of a single command line tool `dart_coveralls` with
-the three commands `calc`, `report` and `send`.
+the two commands `calc`, `report`.
+
+To activate the program for global use, run `pub global activate dart_coveralls`.
 
 #### The `calc` command
 This command calculates the coverage of a given package. Use the tool like this:
 
 ```
-dart dart_coveralls.dart calc [--workers, --output, --package-root] test.dart
+dart_coveralls calc [--workers, --output, --package-root] test.dart
 ```
 
 * `--workers`: The number of workers used to parse LCOV information
@@ -26,7 +28,7 @@ This command calculates and then sends the coverage data to coveralls.io. Usage
 of the tool is as follows:
 
 ```
-dart dart_coveralls.dart report [--workers, --token, --package-root, --debug, --retry] test.dart
+dart_coveralls report [--workers, --token, --package-root, --debug, --retry] test.dart
 ```
 
 * `--workers`: The number of workers used to parse LCOV information
