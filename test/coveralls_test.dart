@@ -1,17 +1,14 @@
 library dart_coveralls.test;
 
-import "dart:async" show Future;
+import "dart:async";
+
 import "package:dart_coveralls/dart_coveralls.dart";
-import "package:unittest/unittest.dart";
 import "package:mock/mock.dart";
+import "package:unittest/unittest.dart";
 
 import "mock_classes.dart";
 
-import "coveralls_entities_test.dart" as entities_test;
-
-main() {
-  entities_test.defineTests();
-
+void main() {
   group("GitPerson", () {
     test("getPersonName", () {
       var name = GitPerson.getPersonName("Adracus <adracus@gmail.com>");

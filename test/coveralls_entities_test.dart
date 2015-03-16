@@ -1,17 +1,17 @@
 library dart_coveralls.test.coveralls_entities;
 
-import 'package:unittest/unittest.dart';
 import 'package:dart_coveralls/dart_coveralls.dart';
 import 'package:mock/mock.dart';
+import 'package:unittest/unittest.dart';
 
 import 'mock_classes.dart';
 
-void expectLineValue(LineValue lv, int lineNumber, int lineCount) {
+void _expectLineValue(LineValue lv, int lineNumber, int lineCount) {
   expect(lv.lineNumber, equals(lineNumber));
   expect(lv.lineCount, equals(lineCount));
 }
 
-FileMock absoluteMock(String path, String absolutePath) {
+FileMock _absoluteMock(String path, String absolutePath) {
   var mock = new FileMock();
   var absolute = new FileMock();
   absolute
@@ -23,43 +23,41 @@ FileMock absoluteMock(String path, String absolutePath) {
   return mock;
 }
 
-main() => defineTests();
-
-defineTests() {
+void main() {
   group("PackageDartFiles", () {
     var testFiles = [
-      absoluteMock(
+      _absoluteMock(
           "test/test.dart", "/home/user/dart/dart_coveralls/test/test.dart"),
-      absoluteMock("test/other_test.dart",
+      _absoluteMock("test/other_test.dart",
           "/home/user/dart/dart_coveralls/test/other_test.dart")
     ];
     var implFiles = [
-      absoluteMock(
+      _absoluteMock(
           "lib/program.dart", "/home/user/dart/dart_coveralls/lib/program.dart")
     ];
     var dartFiles = new PackageDartFiles(testFiles, implFiles);
 
     test("isTestFile", () {
-      expect(dartFiles.isTestFile(absoluteMock(
+      expect(dartFiles.isTestFile(_absoluteMock(
               "test.dart", "/home/user/dart/dart_coveralls/test/test.dart")),
           isTrue);
-      expect(dartFiles.isTestFile(absoluteMock(
+      expect(dartFiles.isTestFile(_absoluteMock(
               "test.dart", "/home/user/dart/dart_coveralls/lib/program.dart")),
           isFalse);
     });
 
     test("isImplementationFile", () {
-      expect(dartFiles.isImplementationFile(absoluteMock(
+      expect(dartFiles.isImplementationFile(_absoluteMock(
               "test.dart", "/home/user/dart/dart_coveralls/test/test.dart")),
           isFalse);
-      expect(dartFiles.isImplementationFile(absoluteMock("program.dart",
+      expect(dartFiles.isImplementationFile(_absoluteMock("program.dart",
           "/home/user/dart/dart_coveralls/lib/program.dart")), isTrue);
     });
 
     test("isSameAbsolutePath", () {
-      var f1 = absoluteMock("test.dart", "/root/test.dart");
-      var f2 = absoluteMock("./test.dart", "/root/./test.dart");
-      var f3 = absoluteMock("nottest.dart", "/root/nottest.dart");
+      var f1 = _absoluteMock("test.dart", "/root/test.dart");
+      var f2 = _absoluteMock("./test.dart", "/root/./test.dart");
+      var f3 = _absoluteMock("nottest.dart", "/root/nottest.dart");
 
       expect(PackageDartFiles.sameAbsolutePath(f1, f2), isTrue);
       f1.calls("get absolute").verify(happenedOnce);
@@ -107,13 +105,13 @@ defineTests() {
 
     test("accept", () {
       var testFiles = [
-        absoluteMock(
+        _absoluteMock(
             "test/test.dart", "/home/user/dart/dart_coveralls/test/test.dart"),
-        absoluteMock("test/other_test.dart",
+        _absoluteMock("test/other_test.dart",
             "/home/user/dart/dart_coveralls/test/other_test.dart")
       ];
       var implFiles = [
-        absoluteMock("lib/program.dart",
+        _absoluteMock("lib/program.dart",
             "/home/user/dart/dart_coveralls/lib/program.dart")
       ];
 
@@ -143,7 +141,7 @@ defineTests() {
       var str = "DA:27,0";
       var lineValue = LineValue.parse(str);
 
-      expectLineValue(lineValue, 27, 0);
+      _expectLineValue(lineValue, 27, 0);
     });
 
     test("covString", () {
@@ -161,12 +159,12 @@ defineTests() {
       var str = "DA:3,3\nDA:4,5\nDA:6,3";
       var coverage = Coverage.parse(str);
       var values = coverage.values;
-      expectLineValue(values[0], 1, null);
-      expectLineValue(values[1], 2, null);
-      expectLineValue(values[2], 3, 3);
-      expectLineValue(values[3], 4, 5);
-      expectLineValue(values[4], 5, null);
-      expectLineValue(values[5], 6, 3);
+      _expectLineValue(values[0], 1, null);
+      _expectLineValue(values[1], 2, null);
+      _expectLineValue(values[2], 3, 3);
+      _expectLineValue(values[3], 4, 5);
+      _expectLineValue(values[4], 5, null);
+      _expectLineValue(values[5], 6, 3);
     });
 
     test("covString", () {
