@@ -102,8 +102,8 @@ class LcovCollector {
   }
 
   /// Returns the most recently changed file among the given files
-  static youngestElement(Iterable<File> files) {
-    if (0 == files.length) throw new Exception("Empty iterable");
+  static File youngestElement(Iterable<File> files) {
+    if (files.isEmpty) throw new Exception("Empty iterable");
 
     var max = files.first;
     var maxStats = max.statSync();
