@@ -12,8 +12,9 @@ class CoverallsEndpoint {
   final Uri coverallsAddress;
 
   CoverallsEndpoint([coverallsAddress = COVERALLS_ADDRESS])
-      : coverallsAddress = coverallsAddress is Uri ? coverallsAddress :
-      Uri.parse(COVERALLS_ADDRESS);
+      : coverallsAddress = coverallsAddress is Uri
+          ? coverallsAddress
+          : Uri.parse(COVERALLS_ADDRESS);
 
   MultipartRequest getCoverallsRequest(String json) {
     var req = new MultipartRequest("POST", coverallsAddress);

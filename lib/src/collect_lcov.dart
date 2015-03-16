@@ -43,7 +43,7 @@ class LcovPart {
 
     return new LcovPart(heading, content);
   }
-  
+
   String get fileName => heading.split(":").last;
 
   String toString() => heading;
@@ -67,12 +67,13 @@ class LcovCollector {
   Future<CoverageResult<String>> getLcovInformation({int workers: 1}) {
     var reportFile = getCoverageJson();
     return parseCoverage([reportFile.result], workers).then((hitmap) {
-      var resolver = new Resolver(
-          packageRoot: packageRoot.path, sdkRoot: sdkRoot);
+      var resolver =
+          new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
       var formatter = new LcovFormatter(resolver);
       reportFile.result.deleteSync();
-      return formatter.format(hitmap).then(
-          (res) => new CoverageResult(res, reportFile.processResult));
+      return formatter
+          .format(hitmap)
+          .then((res) => new CoverageResult(res, reportFile.processResult));
     });
   }
 

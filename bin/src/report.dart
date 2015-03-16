@@ -78,13 +78,12 @@ class ReportPart extends Object with CommandLinePart {
     try {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
       runZoned(() {
-        commandLineClient
-                .reportToCoveralls(file,
-                    workers: workers,
-                    dryRun: dryRun,
-                    retry: retry,
-                    throwOnConnectivityError: throwOnConnectivityError,
-                    excludeTestFiles: excludeTestFiles);
+        commandLineClient.reportToCoveralls(file,
+            workers: workers,
+            dryRun: dryRun,
+            retry: retry,
+            throwOnConnectivityError: throwOnConnectivityError,
+            excludeTestFiles: excludeTestFiles);
       }, onError: errorFunction);
     } catch (e) {
       errorFunction(e);

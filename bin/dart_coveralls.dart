@@ -9,7 +9,7 @@ void main(List<String> args) {
         description: "Calculate and report coverage data to coveralls")
     ..addPart("calc", new CalcPart(),
         description: "Calculate coveralls data and output it or store " +
-        "it in a file");
+            "it in a file");
   var hub = builder.build();
 
   return hub.parseAndExecute(args);

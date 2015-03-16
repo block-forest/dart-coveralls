@@ -11,7 +11,7 @@ import "coveralls_entities_test.dart" as entities_test;
 
 main() {
   entities_test.defineTests();
-  
+
   group("GitPerson", () {
     test("getPersonName", () {
       var name = GitPerson.getPersonName("Adracus <adracus@gmail.com>");
@@ -71,14 +71,16 @@ main() {
       var mockDir = new DirectoryMock();
       var args = ["remote", "-v"];
       mockDir.when(callsTo("get path")).thenReturn(".");
-      processSystem.when(callsTo("runProcessSync", "git", args)).thenReturn(
-          processResult);
+      processSystem
+          .when(callsTo("runProcessSync", "git", args))
+          .thenReturn(processResult);
       processResult.when(callsTo("get stdout")).thenReturn(
           "origin\tgit@github.com:Adracus/dart-coveralls.git (fetch)\n" +
               "origin\tgit@github.com:Adracus/dart-coveralls.git (push)");
       processResult.when(callsTo("get exitCode")).thenReturn(0);
-      mockDir.when(callsTo("runCommand", ["remote", "-v"])).thenReturn(
-          new Future.value(processResult));
+      mockDir
+          .when(callsTo("runCommand", ["remote", "-v"]))
+          .thenReturn(new Future.value(processResult));
       var remotes =
           GitRemote.getGitRemotes(mockDir, processSystem: processSystem);
       expect(remotes.length, equals(1));
