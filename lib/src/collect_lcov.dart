@@ -9,6 +9,42 @@ import "package:path/path.dart";
 
 import "process_system.dart";
 
+/// Checks the given directory for the most recently changed dart coverage file
+File _getYoungestDartCoverageFile(Directory dir) {
+  var files = dir.listSync();
+  var coverageFiles = files
+      .where(_isDartCoverageEntity)
+      .map((f) => f as File)
+      .toList() as List<File>;
+  return _youngestElement(coverageFiles);
+}
+
+/// Returns the most recently changed file among the given files
+File _youngestElement(Iterable<File> files) {
+  if (files.isEmpty) throw new Exception("Empty iterable");
+
+  var max = files.first;
+  var maxStats = max.statSync();
+  var iterable = files.skip(1);
+
+  for (var file in iterable) {
+    var stats = file.statSync();
+    if (0 > stats.changed.compareTo(maxStats.changed)) {
+      maxStats = stats;
+      max = file;
+    }
+  }
+
+  return max;
+}
+
+/// Checks if the given entity is a file and checks its name against a pattern
+bool _isDartCoverageEntity(FileSystemEntity file) {
+  if (file is! File) return false;
+  var name = basename(file.path);
+  return name.startsWith("dart-cov") && name.endsWith(".json");
+}
+
 class LcovDocument {
   final List<LcovPart> parts;
 
@@ -65,7 +101,7 @@ class LcovCollector {
   /// Calculates and returns LCOV information of the tested [File].
   /// This uses [workers] to parse the collected information.
   Future<CoverageResult<String>> getLcovInformation({int workers: 1}) {
-    var reportFile = getCoverageJson();
+    var reportFile = _getCoverageJson();
     return parseCoverage([reportFile.result], workers).then((hitmap) {
       var resolver =
           new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
@@ -78,7 +114,7 @@ class LcovCollector {
   }
 
   /// Generates and returns a coverage json file
-  CoverageResult<File> getCoverageJson() {
+  CoverageResult<File> _getCoverageJson() {
     var current = fileSystem.getDirectory(fileSystem.currentDirectory);
     var args = [
       "--enable-vm-service:9999",
@@ -91,58 +127,8 @@ class LcovCollector {
           'There was a critical error. Exit code: ${result.exitCode}',
           result.exitCode);
     }
-    var reportFile = getYoungestDartCoverageFile(current);
+    var reportFile = _getYoungestDartCoverageFile(current);
     return new CoverageResult<File>(reportFile, result);
-  }
-
-  /// Checks the given directory for the most recently changed dart coverage file
-  static File getYoungestDartCoverageFile(Directory dir,
-      {bool recursive: false}) {
-    var files = dir.listSync(recursive: recursive);
-    var coverageFiles = files
-        .where(isDartCoverageEntity)
-        .map((f) => f as File)
-        .toList() as List<File>;
-    return youngestElement(coverageFiles);
-  }
-
-  /// Returns the most recently changed file among the given files
-  static File youngestElement(Iterable<File> files) {
-    if (files.isEmpty) throw new Exception("Empty iterable");
-
-    var max = files.first;
-    var maxStats = max.statSync();
-    var iterable = files.skip(1);
-
-    for (var file in iterable) {
-      var stats = file.statSync();
-      if (0 > stats.changed.compareTo(maxStats.changed)) {
-        maxStats = stats;
-        max = file;
-      }
-    }
-
-    return max;
-  }
-
-  /// Checks if the given entity is a file and checks its name against a pattern
-  static bool isDartCoverageEntity(FileSystemEntity file) {
-    if (file is! File) return false;
-    var name = basename(file.path);
-    return name.startsWith("dart-cov") && name.endsWith(".json");
-  }
-
-  /// Returns the root path of the Dart SDK
-  ///
-  /// If the given environment is null, it will be [Platform].environment.
-  /// This checks the environment for "DART_SDK". If it exists, this
-  /// will return the normalized, absolute form of the path
-  /// to the dart sdk joined with "lib", otherwise this returns null.
-  static String getSDKRootPath([Map<String, String> environment]) {
-    if (null == environment) environment = Platform.environment;
-    if (environment.containsKey("DART_SDK")) return join(
-        absolute(normalize(environment["DART_SDK"])), "lib");
-    return null;
   }
 }
 
