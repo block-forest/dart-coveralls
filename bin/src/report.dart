@@ -7,14 +7,13 @@ import 'package:dart_coveralls/dart_coveralls.dart';
 
 import "command_line.dart";
 
-class ReportPart extends Object with CommandLinePart {
+class ReportPart extends CommandLinePart {
   final ArgParser parser;
 
   ReportPart() : parser = _initializeParser();
 
   static ArgParser _initializeParser() {
-    var _parser = new ArgParser(allowTrailingOptions: true);
-    _parser
+    return new ArgParser(allowTrailingOptions: true)
       ..addFlag("help", help: "Displays this help", negatable: false)
       ..addOption("token",
           help: "Token for coveralls", defaultsTo: Platform.environment["test"])
@@ -40,7 +39,6 @@ class ReportPart extends Object with CommandLinePart {
           abbr: "T",
           help: "Should test files " + "be included in the coveralls report?",
           negatable: false);
-    return _parser;
   }
 
   void execute(ArgResults res) {
@@ -78,13 +76,12 @@ class ReportPart extends Object with CommandLinePart {
     try {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
       runZoned(() {
-        commandLineClient
-                .reportToCoveralls(file,
-                    workers: workers,
-                    dryRun: dryRun,
-                    retry: retry,
-                    throwOnConnectivityError: throwOnConnectivityError,
-                    excludeTestFiles: excludeTestFiles);
+        commandLineClient.reportToCoveralls(file,
+            workers: workers,
+            dryRun: dryRun,
+            retry: retry,
+            throwOnConnectivityError: throwOnConnectivityError,
+            excludeTestFiles: excludeTestFiles);
       }, onError: errorFunction);
     } catch (e) {
       errorFunction(e);

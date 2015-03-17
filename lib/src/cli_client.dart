@@ -63,8 +63,8 @@ class CommandLineClient {
           excludeTestFiles: excludeTestFiles);
       var endpoint = new CoverallsEndpoint(coverallsAddress);
       if (dryRun) return new Future.value();
-      return _sendLoop(endpoint, report.covString(), retry: retry).catchError(
-          (e) {
+      return _sendLoop(endpoint, report.covString(), retry: retry)
+          .catchError((e) {
         if (throwOnConnectivityError) throw e;
         print("Caught $e");
       });

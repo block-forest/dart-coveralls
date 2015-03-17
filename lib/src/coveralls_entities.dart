@@ -15,26 +15,26 @@ class PackageFilter {
   final bool excludeTestFiles;
   final PackageDartFiles dartFiles;
   final String packageName;
-  
+
   PackageFilter(this.packageName, this.dartFiles,
       {this.excludeTestFiles: false});
-  
+
   PackageFilter.from(Directory packageDirectory,
-      {this.excludeTestFiles: false,
-       FileSystem fileSystem: const FileSystem()})
+      {this.excludeTestFiles: false, FileSystem fileSystem: const FileSystem()})
       : packageName = getPackageName(packageDirectory, fileSystem),
         dartFiles = new PackageDartFiles.from(packageDirectory);
-  
+
   bool accept(String fileName, [FileSystem fileSystem = const FileSystem()]) {
     log.info("ANALYZING $fileName");
-    
+
     if (fileName.startsWith(packageName)) {
       log.info("ADDING $fileName");
       return true;
     }
-    
-    var file = fileSystem.getFile(fileName); 
-    log.info(() => "is implementation file? ${dartFiles.isImplementationFile(file)}");
+
+    var file = fileSystem.getFile(fileName);
+    log.info(() =>
+        "is implementation file? ${dartFiles.isImplementationFile(file)}");
     log.info(() => "is test file? ${dartFiles.isTestFile(file)}");
     if (dartFiles.isImplementationFile(file) ||
         (!excludeTestFiles && dartFiles.isTestFile(file))) {
@@ -44,7 +44,7 @@ class PackageFilter {
     log.info("IGNORING $fileName");
     return false;
   }
-  
+
   /// Returns the name of the package located in [packageRoot].
   ///
   /// This searches [packageRoot] for a yaml file, which it then
@@ -61,32 +61,31 @@ class PackageFilter {
 class PackageDartFiles {
   final List<File> testFiles;
   final List<File> implementationFiles;
-  
+
   PackageDartFiles(this.testFiles, this.implementationFiles);
-  
+
   factory PackageDartFiles.from(Directory packageDirectory) {
     var testFiles = getTestFiles(packageDirectory);
     var implementationFiles = getImplementationFiles(packageDirectory);
-    
-    testFiles.forEach((file) =>
-        log.info("Test file: ${normalize(file.absolute.path)}"));
-    
+
+    testFiles.forEach(
+        (file) => log.info("Test file: ${normalize(file.absolute.path)}"));
+
     implementationFiles.forEach((file) =>
         log.info("Implementation file: ${normalize(file.absolute.path)}"));
-    
+
     return new PackageDartFiles(testFiles, implementationFiles);
   }
-  
+
   bool isTestFile(File file) {
-    return testFiles.any((testFile) =>
-        sameAbsolutePath(testFile, file));
+    return testFiles.any((testFile) => sameAbsolutePath(testFile, file));
   }
-  
+
   bool isImplementationFile(File file) {
-    return implementationFiles.any((implFile) =>
-        sameAbsolutePath(implFile, file));
+    return implementationFiles
+        .any((implFile) => sameAbsolutePath(implFile, file));
   }
-  
+
   static List<File> getImplementationFiles(Directory packageDirectory) {
     return packageDirectory
         .listSync(recursive: false, followLinks: false)
@@ -94,41 +93,40 @@ class PackageDartFiles {
         .map(getDartFiles)
         .fold([], (l1, l2) => l1..addAll(l2));
   }
-  
+
   static List<File> getTestFiles(Directory packageDirectory) {
     try {
-      Directory testDirectory =
-          packageDirectory.listSync(followLinks: false)
-                          .singleWhere(isTestDirectory)
-                          as Directory;
+      Directory testDirectory = packageDirectory
+          .listSync(followLinks: false)
+          .singleWhere(isTestDirectory) as Directory;
       return getDartFiles(testDirectory);
-    } on StateError catch(e) {
+    } on StateError catch (e) {
       return [];
     }
   }
-  
+
   static bool isTestDirectory(FileSystemEntity entity) {
     return entity is Directory && "test" == basename(entity.path);
   }
-  
+
   static bool sameAbsolutePath(File f1, File f2) {
     var absolutePath1 = normalize(f1.absolute.path);
     var absolutePath2 = normalize(f2.absolute.path);
     return absolutePath1 == absolutePath2;
   }
-  
+
   /// Searches the given [entity] for dart files.
-  /// 
+  ///
   /// If [entity] is a [Link], an empty list is returned.
-  /// 
+  ///
   /// If [entity] is a [File], then a list with the [entity]
   /// as single element is returned.
-  /// 
+  ///
   /// If [entity] is a [Directory], the subentities are listed
   /// non-recursively and links are not followed. On the
   /// resulting entities, this method is applied again.
   /// The resulting lists are combined into one and then returned.
-  /// 
+  ///
   /// If the entity is none of the previous types, an empty list is
   /// returned.
   static List<File> getDartFiles(FileSystemEntity entity) {
@@ -138,18 +136,13 @@ class PackageDartFiles {
       return [];
     }
     if (entity is Directory) {
-      var subEntities = entity.listSync(
-          recursive: false,
-          followLinks: false);
-      
-      return subEntities.map(getDartFiles)
-                        .fold([], (l1, l2) => l1..addAll(l2));
+      var subEntities = entity.listSync(recursive: false, followLinks: false);
+
+      return subEntities.map(getDartFiles).fold([], (l1, l2) => l1..addAll(l2));
     }
     return [];
   }
 }
-
-
 
 /// An interface for Coveralls-Convertable Entity
 abstract class CoverallsReportable {
@@ -288,12 +281,12 @@ class SourceFileReports implements CoverallsReportable {
 
   static SourceFileReports parse(LcovDocument lcov, Directory packageRoot,
       {bool excludeTestFiles: false}) {
-    var filter = new PackageFilter.from(packageRoot,
-        excludeTestFiles: excludeTestFiles);
-    
-    var relevantParts = lcov.parts.where((part) =>
-        filter.accept(part.fileName));
-    
+    var filter =
+        new PackageFilter.from(packageRoot, excludeTestFiles: excludeTestFiles);
+
+    var relevantParts =
+        lcov.parts.where((part) => filter.accept(part.fileName));
+
     var reports = relevantParts
         .map((part) => SourceFileReport.parse(part, packageRoot))
         .toList();

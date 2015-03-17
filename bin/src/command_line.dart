@@ -42,18 +42,18 @@ class CommandLineHub extends Object with CommandLinePart {
     var part = partByName(results.command.name);
     part.execute(results.command);
   }
-  
+
   CommandLinePart partByName(String name) {
     var partInfo = _parts.keys.firstWhere((info) => info.name == name);
     return _parts[partInfo];
   }
-  
+
   int _getLongestNameLength() {
     var longest = 0;
     _parts.keys.forEach((part) => longest = max(longest, part.name.length));
     return longest;
   }
-  
+
   String get usage {
     int len = _getLongestNameLength();
     return "Possible commands are: \n\n" +
@@ -71,19 +71,18 @@ class CommandLineHub extends Object with CommandLinePart {
 class PartInfo {
   final String name;
   final String description;
-  
+
   PartInfo(this.name, {this.description: ""});
-  
-  bool operator==(other) {
+
+  bool operator ==(other) {
     if (other is! PartInfo) return false;
     return other.name == this.name;
   }
-  
+
   int get hashCode => name.hashCode;
-  
+
   String toString([int nameLength]) {
     if (null == nameLength) nameLength = name.length;
     return "  ${name.padRight(nameLength)}\t$description";
   }
-  
 }

@@ -6,21 +6,19 @@ import 'package:dart_coveralls/dart_coveralls.dart';
 
 import 'command_line.dart';
 
-class CalcPart extends Object with CommandLinePart {
+class CalcPart extends CommandLinePart {
   final ArgParser parser;
 
   CalcPart() : parser = _initializeParser();
 
   static ArgParser _initializeParser() {
-    var _parser = new ArgParser(allowTrailingOptions: true);
-    _parser
+    return new ArgParser(allowTrailingOptions: true)
       ..addFlag("help", help: "Prints this help", negatable: false)
       ..addOption("workers",
           help: "Number of workers for parsing", defaultsTo: "1")
       ..addOption("output", help: "Output file path")
       ..addOption("package-root",
           help: "Root of the analyzed package", defaultsTo: ".");
-    return _parser;
   }
 
   execute(ArgResults res) {
