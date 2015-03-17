@@ -85,9 +85,14 @@ class LcovCollector {
       "--coverage_dir=${current.path}",
       testFile.absolute.path
     ];
-    var process = processSystem.runProcessSync("dart", args);
+    var result = processSystem.runProcessSync("dart", args);
+    if (result.exitCode < 0) {
+      throw new ProcessException('dart', args,
+          'There was a critical error. Exit code: ${result.exitCode}',
+          result.exitCode);
+    }
     var reportFile = getYoungestDartCoverageFile(current);
-    return new CoverageResult<File>(reportFile, process);
+    return new CoverageResult<File>(reportFile, result);
   }
 
   /// Checks the given directory for the most recently changed dart coverage file
