@@ -1,6 +1,6 @@
 dart-coveralls
 ==============
-[![Coverage Status](https://coveralls.io/repos/Adracus/dart-coveralls/badge.png)](https://coveralls.io/r/Adracus/dart-coveralls)
+[![Coverage Status](https://coveralls.io/repos/duse-io/dart-coveralls/badge.svg)](https://coveralls.io/r/duse-io/dart-coveralls)
 
 Calculate coverage of your dart scripts, format it to LCOV and send it to
 [coveralls.io](https://coveralls.io/).
