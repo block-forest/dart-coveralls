@@ -100,7 +100,7 @@ class PackageDartFiles {
           .listSync(followLinks: false)
           .singleWhere(isTestDirectory) as Directory;
       return getDartFiles(testDirectory);
-    } on StateError catch (e) {
+    } on StateError {
       return [];
     }
   }

@@ -2,7 +2,7 @@ library dart_coveralls.test.coveralls_entities;
 
 import 'package:dart_coveralls/dart_coveralls.dart';
 import 'package:mock/mock.dart';
-import 'package:unittest/unittest.dart';
+import 'package:test/test.dart';
 
 import 'mock_classes.dart';
 
