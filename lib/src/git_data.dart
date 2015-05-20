@@ -131,8 +131,7 @@ class GitBranch {
       {ProcessSystem processSystem: const ProcessSystem(),
       Map<String, String> environment}) {
     if (null == environment) environment = Platform.environment;
-    if (null != environment["CI_BRANCH"]) return environment[
-        "CI_BRANCH"];
+    if (null != environment["CI_BRANCH"]) return environment["CI_BRANCH"];
     if (null != environment["TRAVIS_BRANCH"]) return environment[
         "TRAVIS_BRANCH"];
     var args = ["rev-parse", "--abbrev-ref", "HEAD"];

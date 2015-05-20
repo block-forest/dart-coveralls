@@ -78,7 +78,7 @@ class CommandLineClient {
 }
 
 Future _sendLoop(CoverallsEndpoint endpoint, String covString,
-                 {int retry: 0}) async {
+    {int retry: 0}) async {
   while (true) {
     try {
       await endpoint.sendToCoveralls(covString);
