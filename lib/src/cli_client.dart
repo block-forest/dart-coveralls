@@ -4,6 +4,7 @@ import 'dart:async' show Future, Completer;
 import 'dart:io';
 
 import 'package:mockable_filesystem/filesystem.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import 'collect_lcov.dart';
 import 'coveralls_entities.dart';
@@ -54,34 +55,39 @@ class CommandLineClient {
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress, bool dryRun: false,
       bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false}) {
-    return getLcovResult(testFile,
-        workers: workers, processSystem: processSystem).then((rawLcov) {
-      print(rawLcov.processResult.stdout);
-      var lcov = LcovDocument.parse(rawLcov.result.toString());
-      var report = CoverallsReport.parse(token, lcov, packageRoot, serviceName,
-          excludeTestFiles: excludeTestFiles);
-      var endpoint = new CoverallsEndpoint(coverallsAddress);
-      if (dryRun) return new Future.value();
-      return _sendLoop(endpoint, report.covString(), retry: retry)
-          .catchError((e) {
-        if (throwOnConnectivityError) throw e;
-        print("Caught $e");
-      });
-    });
-  }
+      bool excludeTestFiles: false}) async {
+    var rawLcov = await getLcovResult(testFile,
+        workers: workers, processSystem: processSystem);
 
-  Future _sendLoop(CoverallsEndpoint endpoint, String covString,
-      {Completer completer, int retry: 0}) {
-    if (null == completer) completer = new Completer();
-    endpoint
-        .sendToCoveralls(covString)
-        .then((_) => completer.complete())
-        .catchError((e) {
-      if (0 == retry) return completer.completeError(e);
-      return _sendLoop(endpoint, covString,
-          completer: completer, retry: retry - 1);
-    });
-    return completer.future;
+    print(rawLcov.processResult.stdout);
+    var lcov = LcovDocument.parse(rawLcov.result.toString());
+    var report = CoverallsReport.parse(token, lcov, packageRoot, serviceName,
+        excludeTestFiles: excludeTestFiles);
+    var endpoint = new CoverallsEndpoint(coverallsAddress);
+    if (dryRun) return;
+
+    try {
+      await _sendLoop(endpoint, report.covString(), retry: retry);
+    } catch (e, stack) {
+      if (throwOnConnectivityError) rethrow;
+      stderr.writeln('Error sending results');
+      stderr.writeln(e);
+      stderr.writeln(new Chain.forTrace(stack).terse);
+    }
+  }
+}
+
+Future _sendLoop(CoverallsEndpoint endpoint, String covString,
+                 {int retry: 0}) async {
+  while (true) {
+    try {
+      await endpoint.sendToCoveralls(covString);
+      return;
+    } catch (_) {
+      if (retry <= 0) {
+        rethrow;
+      }
+      retry--;
+    }
   }
 }
