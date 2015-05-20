@@ -1,9 +1,9 @@
 library dart_coveralls.report;
 
 import 'dart:io';
-import 'dart:async' show runZoned;
 
 import 'package:dart_coveralls/dart_coveralls.dart';
+import 'package:stack_trace/stack_trace.dart';
 
 import "command_line.dart";
 
@@ -45,7 +45,15 @@ class ReportPart extends CommandLinePart {
     if (res["help"]) return print(parser.usage);
     if (res.rest.length != 1) return print("Please specify a test file to run");
     if (res["debug"]) {
-      log.onRecord.listen((rec) => print(rec));
+      log.onRecord.listen((rec) {
+        print(rec.message);
+        if (rec.error != null) {
+          print(rec.error);
+        }
+        if (rec.stackTrace != null) {
+          print(new Chain.forTrace(rec.stackTrace).terse);
+        }
+      });
     }
 
     var pRoot = new Directory(res["package-root"]);
@@ -69,22 +77,20 @@ class ReportPart extends CommandLinePart {
     // We don't print out the token here as it could end up in public build logs.
     log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
 
-    var errorFunction = (e) {
+    var errorFunction = (e, Chain chain) {
+      log.severe('Exception', e, chain);
       if (throwOnError) throw e;
     };
 
-    try {
+    Chain.capture(() {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
-      runZoned(() {
-        commandLineClient.reportToCoveralls(file,
-            workers: workers,
-            dryRun: dryRun,
-            retry: retry,
-            throwOnConnectivityError: throwOnConnectivityError,
-            excludeTestFiles: excludeTestFiles);
-      }, onError: errorFunction);
-    } catch (e) {
-      errorFunction(e);
-    }
+
+      commandLineClient.reportToCoveralls(file,
+          workers: workers,
+          dryRun: dryRun,
+          retry: retry,
+          throwOnConnectivityError: throwOnConnectivityError,
+          excludeTestFiles: excludeTestFiles);
+    }, onError: errorFunction);
   }
 }
