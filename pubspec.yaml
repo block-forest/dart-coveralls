@@ -1,10 +1,10 @@
 name: dart_coveralls
-version: 0.1.12-dev
+version: 0.1.12
 author: Axel Christ <adracus@gmail.com>
 description: |-
   Pub package to calculate coverage, format it
   to LCOV and send it to coveralls
-homepage: https://github.com/Adracus/dart-coveralls
+homepage: https://github.com/duse-io/dart-coveralls
 environment:
   sdk: '>=1.9.0 <2.0.0'
 dependencies:
