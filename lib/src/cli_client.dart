@@ -9,6 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 import 'collect_lcov.dart';
 import 'coveralls_entities.dart';
 import 'coveralls_endpoint.dart';
+import 'log.dart';
 import 'process_system.dart';
 
 class CommandLineClient {
@@ -79,15 +80,18 @@ class CommandLineClient {
 
 Future _sendLoop(CoverallsEndpoint endpoint, String covString,
     {int retry: 0}) async {
+  var currentRetryCount = 0;
   while (true) {
     try {
       await endpoint.sendToCoveralls(covString);
       return;
-    } catch (_) {
-      if (retry <= 0) {
+    } catch (e) {
+      if (currentRetryCount >= retry) {
         rethrow;
       }
-      retry--;
+      currentRetryCount++;
+      log.warning('Error sending', e);
+      log.info("Retrying $currentRetryCount of $retry.");
     }
   }
 }
