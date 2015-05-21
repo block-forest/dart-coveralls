@@ -1,3 +1,7 @@
+### 0.2.0
+
+* `CommandLinePart` and subtypes execute methods are now explicitly async.
+
 ### 0.1.12
 
 * Support latest versions of `args` and `coverage` packages.

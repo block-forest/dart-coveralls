@@ -1,5 +1,6 @@
 library dart_coveralls.report;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_coveralls/dart_coveralls.dart';
@@ -41,7 +42,7 @@ class ReportPart extends CommandLinePart {
           negatable: false);
   }
 
-  void execute(ArgResults res) {
+  Future execute(ArgResults res) async {
     if (res["help"]) return print(parser.usage);
     if (res.rest.length != 1) return print("Please specify a test file to run");
     if (res["debug"]) {
@@ -82,10 +83,10 @@ class ReportPart extends CommandLinePart {
       if (throwOnError) throw e;
     };
 
-    Chain.capture(() {
+    await Chain.capture(() async {
       var commandLineClient = new CommandLineClient(pRoot, token: token);
 
-      commandLineClient.reportToCoveralls(file,
+      await commandLineClient.reportToCoveralls(file,
           workers: workers,
           dryRun: dryRun,
           retry: retry,

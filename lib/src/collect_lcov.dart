@@ -100,17 +100,17 @@ class LcovCollector {
   ///
   /// Calculates and returns LCOV information of the tested [File].
   /// This uses [workers] to parse the collected information.
-  Future<CoverageResult<String>> getLcovInformation({int workers: 1}) {
+  Future<CoverageResult<String>> getLcovInformation({int workers: 1}) async {
     var reportFile = _getCoverageJson();
-    return parseCoverage([reportFile.result], workers).then((hitmap) {
-      var resolver =
-          new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
-      var formatter = new LcovFormatter(resolver);
-      reportFile.result.deleteSync();
-      return formatter
-          .format(hitmap)
-          .then((res) => new CoverageResult(res, reportFile.processResult));
-    });
+
+    var hitmap = await parseCoverage([reportFile.result], workers);
+    var resolver =
+        new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
+    var formatter = new LcovFormatter(resolver);
+    reportFile.result.deleteSync();
+
+    var res = await formatter.format(hitmap);
+    return new CoverageResult(res, reportFile.processResult);
   }
 
   /// Generates and returns a coverage json file

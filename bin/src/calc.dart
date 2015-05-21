@@ -1,5 +1,6 @@
 library dart_coveralls.calc;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_coveralls/dart_coveralls.dart';
@@ -21,24 +22,35 @@ class CalcPart extends CommandLinePart {
           help: "Root of the analyzed package", defaultsTo: ".");
   }
 
-  execute(ArgResults res) {
-    if (res.rest.length != 1) return print("Please specify a test file to run");
+  Future execute(ArgResults res) async {
+    if (res.rest.length != 1) {
+      print("Please specify a test file to run");
+      return;
+    }
 
     var pRoot = new Directory(res["package-root"]);
     var file = new File(res.rest.single);
     var workers = int.parse(res["workers"]);
 
-    if (!pRoot.existsSync()) return print("Root directory does not exist");
-    if (!file.existsSync()) return print("Dart file does not exist");
+    if (!pRoot.existsSync()) {
+      print("Root directory does not exist");
+      return;
+    }
+
+    if (!file.existsSync()) {
+      print("Dart file does not exist");
+      return;
+    }
 
     var collector = new LcovCollector(pRoot, file);
 
-    return collector.getLcovInformation(workers: workers).then((r) {
-      print(r.processResult.stdout);
-      if (res["output"] != null) {
-        return new File(res["output"]).writeAsStringSync(r.result);
-      }
-      return print(r.result);
-    });
+    var r = await collector.getLcovInformation(workers: workers);
+
+    print(r.processResult.stdout);
+    if (res["output"] != null) {
+      await new File(res["output"]).writeAsString(r.result);
+    } else {
+      print(r.result);
+    }
   }
 }

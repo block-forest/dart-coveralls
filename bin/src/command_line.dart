@@ -1,5 +1,6 @@
 library cmdpart;
 
+import 'dart:async';
 import "dart:math" show max;
 
 import "package:args/args.dart";
@@ -9,9 +10,9 @@ export "package:args/args.dart";
 abstract class CommandLinePart {
   ArgParser get parser;
 
-  void parseAndExecute(List<String> args) => execute(parser.parse(args));
+  Future parseAndExecute(List<String> args) => execute(parser.parse(args));
 
-  void execute(ArgResults res);
+  Future execute(ArgResults res);
 }
 
 class CommandLineHubBuilder {
@@ -34,13 +35,17 @@ class CommandLineHub extends Object with CommandLinePart {
       : _parts = parts,
         parser = _initializeParser(parts);
 
-  void execute(ArgResults results) {
-    if (results["help"]) return print(usage);
+  Future execute(ArgResults results) async {
+    if (results["help"]) {
+      print(usage);
+      return;
+    }
     if (null == results.command) {
-      return print(usage);
+      print(usage);
+      return;
     }
     var part = partByName(results.command.name);
-    part.execute(results.command);
+    await part.execute(results.command);
   }
 
   CommandLinePart partByName(String name) {
