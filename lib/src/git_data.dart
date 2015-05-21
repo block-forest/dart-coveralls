@@ -1,13 +1,11 @@
 library dart_coveralls.git_data;
 
-import 'dart:convert' show JSON;
 import 'dart:io' show Directory, ProcessException, Platform;
 
-import 'coveralls_entities.dart';
 import 'log.dart';
 import 'process_system.dart';
 
-abstract class GitPerson implements CoverallsReportable {
+abstract class GitPerson {
   final String name;
   final String mail;
 
@@ -34,21 +32,15 @@ class GitCommitter extends GitPerson {
   GitCommitter(String name, String mail) : super(name, mail);
 
   GitCommitter.fromPersonString(String str) : super.fromPersonString(str);
-
-  String covString() => "\"committer_name\": ${JSON.encode(name)}, " +
-      "\"committer_email\": ${JSON.encode(mail)}";
 }
 
 class GitAuthor extends GitPerson {
   GitAuthor(String name, String mail) : super(name, mail);
 
   GitAuthor.fromPersonString(String str) : super.fromPersonString(str);
-
-  String covString() => "\"author_name\": ${JSON.encode(name)}, " +
-      "\"author_email\": ${JSON.encode(mail)}";
 }
 
-class GitCommit implements CoverallsReportable {
+class GitCommit {
   final String id;
   final GitAuthor author;
   final GitCommitter committer;
@@ -82,11 +74,17 @@ class GitCommit implements CoverallsReportable {
     return lines.length;
   }
 
-  String covString() => "{\"id\": \"$id\", ${author.covString()}, " +
-      "${committer.covString()}, \"message\": ${JSON.encode(message)}}";
+  Map toJson() => {
+    "id": id,
+    "message": message,
+    "committer_name": committer.name,
+    "committer_email": committer.mail,
+    "author_name": author.name,
+    "author_email": author.mail
+  };
 }
 
-class GitRemote implements CoverallsReportable {
+class GitRemote {
   final String name;
   final String address;
 
@@ -116,8 +114,7 @@ class GitRemote implements CoverallsReportable {
 
   int get hashCode => name.hashCode;
 
-  String covString() =>
-      "{\"name\": ${JSON.encode(name)}, " + "\"url\": ${JSON.encode(address)}}";
+  Map toJson() => {"name": name, "url": address};
 }
 
 class GitBranch {
@@ -158,7 +155,7 @@ class GitBranch {
   }
 }
 
-class GitData implements CoverallsReportable {
+class GitData {
   final String branch;
   final List<GitRemote> remotes;
   final GitCommit headCommit;
@@ -174,8 +171,6 @@ class GitData implements CoverallsReportable {
     return new GitData(branch.name, remotes, commit);
   }
 
-  String covString() => "{\"head\": ${headCommit.covString()}, \"branch\": " +
-      "\"$branch\", \"remotes\": [" +
-      remotes.map((r) => r.covString()).join(", ") +
-      "]}";
+  Map toJson() =>
+      {"head": headCommit, "branch": branch, "remotes": remotes.toList()};
 }

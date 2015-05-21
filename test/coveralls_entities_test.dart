@@ -149,8 +149,25 @@ void main() {
       var lineValue1 = LineValue.parse(str);
       var lineValue2 = new LineValue.noCount(10);
 
-      expect(lineValue1.covString(), equals("0"));
-      expect(lineValue2.covString(), equals("null"));
+      expect(lineValue1.lineCount, equals(0));
+      expect(lineValue2.lineCount, isNull);
+    });
+  });
+
+  group('SourceFileReport', () {
+    test('toJson', () {
+      var file = new SourceFile('a', 'b');
+
+      var str = "DA:3,3\nDA:4,5\nDA:6,3";
+      var coverage = Coverage.parse(str);
+
+      var report = new SourceFileReport(file, coverage);
+
+      expect(report.toJson(), equals({
+        'name': 'a',
+        'source': 'b',
+        "coverage": [null, null, 3, 5, null, 3]
+      }));
     });
   });
 
@@ -165,14 +182,6 @@ void main() {
       _expectLineValue(values[3], 4, 5);
       _expectLineValue(values[4], 5, null);
       _expectLineValue(values[5], 6, 3);
-    });
-
-    test("covString", () {
-      var str = "DA:3,3\nDA:4,5\nDA:6,3";
-      var coverage = Coverage.parse(str);
-
-      expect(coverage.covString(),
-          equals("\"coverage\": [null, null, 3, 5, null, 3]"));
     });
   });
 
@@ -219,27 +228,6 @@ void main() {
 
         expect(identical(file, resolvedFile), isTrue);
       });
-    });
-  });
-
-  group("CoverallsReport", () {
-    test("covString", () {
-      var sourceFileReports = new SourceFilesReportsMock();
-      sourceFileReports
-          .when(callsTo("covString"))
-          .thenReturn("{sourceFileCovString}");
-      var gitDataMock = new GitDataMock();
-      gitDataMock.when(callsTo("covString")).thenReturn("{gitDataCovString}");
-
-      var report =
-          new CoverallsReport("token", sourceFileReports, gitDataMock, "local");
-
-      var covString = report.covString();
-
-      expect(covString, equals(
-          '{"repo_token": "token", {sourceFileCovString}, ' +
-              '"git": {gitDataCovString}, ' +
-              '"service_name": "local"}'));
     });
   });
 }

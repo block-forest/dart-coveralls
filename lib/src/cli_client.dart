@@ -1,6 +1,7 @@
 library dart_coveralls.cli_client;
 
 import 'dart:async' show Future, Completer;
+import 'dart:convert';
 import 'dart:io';
 
 import 'package:mockable_filesystem/filesystem.dart';
@@ -68,7 +69,9 @@ class CommandLineClient {
     if (dryRun) return;
 
     try {
-      await _sendLoop(endpoint, report.covString(), retry: retry);
+      var json = report.toJson();
+      var encoded = JSON.encode(json);
+      await _sendLoop(endpoint, encoded, retry: retry);
     } catch (e, stack) {
       if (throwOnConnectivityError) rethrow;
       stderr.writeln('Error sending results');

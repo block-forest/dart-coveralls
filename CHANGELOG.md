@@ -4,6 +4,9 @@
 
 * Added a lot more logging, especially in error cases.
 
+* `covString` and related are removed from all classes. Using standard `toJson`
+  method supported by `dart:convert` `JSON`.
+
 ### 0.1.12
 
 * Support latest versions of `args` and `coverage` packages.

@@ -1,6 +1,5 @@
 library dart_coveralls.coveralls_entities;
 
-import 'dart:convert' show JSON;
 import 'dart:io' show Directory, File, Platform, FileSystemEntity, Link;
 
 import 'package:mockable_filesystem/filesystem.dart';
@@ -144,14 +143,8 @@ class PackageDartFiles {
   }
 }
 
-/// An interface for Coveralls-Convertable Entity
-abstract class CoverallsReportable {
-  /// Converts this into a json representation for Coveralls
-  String covString();
-}
-
 /// A Report of a single Source File
-class SourceFileReport implements CoverallsReportable {
+class SourceFileReport {
   /// Identification of this [SourceFileReport]
   final SourceFile sourceFile;
 
@@ -166,11 +159,14 @@ class SourceFileReport implements CoverallsReportable {
     return new SourceFileReport(sourceFile, coverage);
   }
 
-  String covString() =>
-      "{" + sourceFile.covString() + ", " + coverage.covString() + "}";
+  Map toJson() => {
+    "name": sourceFile.name,
+    "source": sourceFile.source,
+    "coverage": coverage.values.map((lv) => lv.lineCount).toList()
+  };
 }
 
-class SourceFile implements CoverallsReportable {
+class SourceFile {
   final String name;
   final String source;
 
@@ -209,14 +205,11 @@ class SourceFile implements CoverallsReportable {
     file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     return file.absolute;
   }
-
-  String covString() =>
-      "\"name\": \"$name\", \"source\": ${JSON.encode(source)}";
 }
 
 /// [Coverage] represents basic coverage information. Coverage
 /// information consists of several LineValues.
-class Coverage implements CoverallsReportable {
+class Coverage {
   final List<LineValue> values;
 
   /// Instantiates a new [Coverage] with the given [LineValue]s.
@@ -239,13 +232,10 @@ class Coverage implements CoverallsReportable {
     }
     return new Coverage(values);
   }
-
-  String covString() =>
-      "\"coverage\": [" + values.map((val) => val.covString()).join(", ") + "]";
 }
 
 /// A [LineValue] represents a single line in an LCOV-File
-class LineValue implements CoverallsReportable {
+class LineValue {
   final int lineNumber;
   final int lineCount;
 
@@ -267,14 +257,10 @@ class LineValue implements CoverallsReportable {
     return new LineValue(lineNumber, lineCount);
   }
 
-  String covString() => lineCountRepresentation();
-
-  String lineCountRepresentation() => lineCount == null ? "null" : "$lineCount";
-
-  String toString() => "$lineNumber:${lineCountRepresentation()}";
+  String toString() => "$lineNumber:${lineCount}";
 }
 
-class SourceFileReports implements CoverallsReportable {
+class SourceFileReports {
   final List<SourceFileReport> sourceFileReports;
 
   SourceFileReports(this.sourceFileReports);
@@ -292,13 +278,9 @@ class SourceFileReports implements CoverallsReportable {
         .toList();
     return new SourceFileReports(reports);
   }
-
-  String covString() => "\"source_files\": [" +
-      sourceFileReports.map((rep) => rep.covString()).join(", ") +
-      "]";
 }
 
-class CoverallsReport implements CoverallsReportable {
+class CoverallsReport {
   final String repoToken;
   final GitData gitData;
   final SourceFileReports sourceFileReports;
@@ -316,9 +298,11 @@ class CoverallsReport implements CoverallsReportable {
     return new CoverallsReport(repoToken, reports, gitData, serviceName);
   }
 
-  String covString() => "{" +
-      "\"repo_token\": \"$repoToken\", " +
-      sourceFileReports.covString() +
-      ", \"git\": ${gitData.covString()}, " +
-      "\"service_name\": \"$serviceName\"}";
+  Map toJson() => {
+    "repo_token": repoToken,
+    "git": gitData.toJson(),
+    "service_name": serviceName,
+    "source_files":
+        sourceFileReports.sourceFileReports.map((rep) => rep.toJson()).toList()
+  };
 }
