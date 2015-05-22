@@ -4,6 +4,7 @@ import 'dart:async' show Future, Completer;
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:path/path.dart' as p;
 import 'package:stack_trace/stack_trace.dart';
 
 import 'collect_lcov.dart';
@@ -13,17 +14,30 @@ import 'log.dart';
 import 'process_system.dart';
 
 class CommandLineClient {
-  final Directory packageRoot;
+  final String projectDirectory;
+  final String packageRoot;
   final String token;
   final String serviceName;
 
-  CommandLineClient(Directory packageRoot,
-      {String token, Map<String, String> environment})
-      : packageRoot = packageRoot,
-        serviceName = getServiceName(environment),
-        token = getToken(token, environment);
+  CommandLineClient._(
+      this.projectDirectory, this.packageRoot, this.token, this.serviceName);
 
-  Future<CoverageResult<String>> getLcovResult(File testFile,
+  factory CommandLineClient({String projectDirectory, String packageRoot,
+      String token, Map<String, String> environment}) {
+    if (projectDirectory == null) {
+      projectDirectory = p.current;
+    }
+
+    packageRoot = _calcPackageRoot(projectDirectory, packageRoot);
+
+    var serviceName = getServiceName(environment);
+    token = getToken(token, environment);
+
+    return new CommandLineClient._(
+        projectDirectory, packageRoot, token, serviceName);
+  }
+
+  Future<CoverageResult<String>> getLcovResult(String testFile,
       {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
     var collector =
         new LcovCollector(packageRoot, testFile, processSystem: processSystem);
@@ -49,7 +63,7 @@ class CommandLineClient {
     return serviceName;
   }
 
-  Future reportToCoveralls(File testFile, {int workers,
+  Future reportToCoveralls(String testFile, {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress, bool dryRun: false,
       bool throwOnConnectivityError: false, int retry: 0,
@@ -59,7 +73,8 @@ class CommandLineClient {
 
     print(rawLcov.processResult.stdout);
     var lcov = LcovDocument.parse(rawLcov.result.toString());
-    var report = CoverallsReport.parse(token, lcov, packageRoot, serviceName,
+    var report = CoverallsReport.parse(
+        token, lcov, projectDirectory, serviceName,
         excludeTestFiles: excludeTestFiles);
     var endpoint = new CoverallsEndpoint(coverallsAddress);
 
@@ -79,6 +94,20 @@ class CommandLineClient {
       stderr.writeln(new Chain.forTrace(stack).terse);
     }
   }
+}
+
+String _calcPackageRoot(String packageDir, String packageRoot) {
+  assert(p.isAbsolute(packageDir));
+
+  if (packageRoot == null) {
+    packageRoot = 'packages';
+  }
+
+  if (p.isRelative(packageRoot)) {
+    packageRoot = p.join(packageDir, packageRoot);
+  }
+
+  return p.normalize(packageRoot);
 }
 
 Future _sendLoop(CoverallsEndpoint endpoint, String covString,

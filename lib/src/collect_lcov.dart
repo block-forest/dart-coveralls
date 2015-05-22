@@ -4,6 +4,7 @@ import "dart:async" show Future;
 import "dart:io";
 
 import "package:coverage/coverage.dart";
+import "package:path/path.dart" as p;
 
 import "process_system.dart";
 
@@ -49,12 +50,17 @@ class LcovPart {
 
 class LcovCollector {
   final String sdkRoot;
-  final File testFile;
-  final Directory packageRoot;
+  final String testFile;
+  final String packageRoot;
   final ProcessSystem processSystem;
 
   LcovCollector(this.packageRoot, this.testFile,
-      {this.processSystem: const ProcessSystem(), this.sdkRoot});
+      {this.processSystem: const ProcessSystem(), this.sdkRoot}) {
+    if (!p.isAbsolute(testFile)) {
+      throw new ArgumentError.value(
+          testFile, 'testFile', 'Must be an absolute path.');
+    }
+  }
 
   // TODO: perhaps provide an option to NOT delete the temp file and instead
   //       print out the path for other tooling
@@ -69,8 +75,7 @@ class LcovCollector {
       var reportFile = await _getCoverageJson(tempDir);
 
       var hitmap = await parseCoverage(reportFile.result, workers);
-      var resolver =
-          new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
+      var resolver = new Resolver(packageRoot: packageRoot, sdkRoot: sdkRoot);
       var formatter = new LcovFormatter(resolver);
 
       var res = await formatter.format(hitmap);
@@ -86,7 +91,8 @@ class LcovCollector {
     var args = [
       "--enable-vm-service=0",
       "--coverage_dir=${coverageDir.path}",
-      testFile.absolute.path
+      "--package-root=${packageRoot}",
+      testFile
     ];
     var result = await processSystem.runProcess("dart", args);
     if (result.exitCode < 0) {

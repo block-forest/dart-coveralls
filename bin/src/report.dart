@@ -20,7 +20,9 @@ class ReportPart extends CommandLinePart {
           help: "Token for coveralls", defaultsTo: Platform.environment["test"])
       ..addOption("workers",
           help: "Number of workers for parsing", defaultsTo: "1")
-      ..addOption("package-root", help: "Root package", defaultsTo: ".")
+      ..addOption("package-root",
+          help: 'Where to find packages, that is, "package:..." imports.',
+          defaultsTo: "packages")
       ..addFlag("debug", help: "Prints debug information", negatable: false)
       ..addOption("retry", help: "Number of retries", defaultsTo: "10")
       ..addFlag("dry-run",
@@ -87,9 +89,10 @@ class ReportPart extends CommandLinePart {
     };
 
     await Chain.capture(() async {
-      var commandLineClient = new CommandLineClient(pRoot, token: token);
+      var commandLineClient =
+          new CommandLineClient(packageRoot: pRoot.absolute.path, token: token);
 
-      await commandLineClient.reportToCoveralls(file,
+      await commandLineClient.reportToCoveralls(file.absolute.path,
           workers: workers,
           dryRun: dryRun,
           retry: retry,

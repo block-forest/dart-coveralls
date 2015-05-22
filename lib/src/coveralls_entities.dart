@@ -18,10 +18,10 @@ class PackageFilter {
   PackageFilter(this.packageName, this.dartFiles,
       {this.excludeTestFiles: false});
 
-  PackageFilter.from(Directory packageDirectory,
+  PackageFilter.from(String projectDirectory,
       {this.excludeTestFiles: false, FileSystem fileSystem: const FileSystem()})
-      : packageName = getPackageName(packageDirectory, fileSystem),
-        dartFiles = new PackageDartFiles.from(packageDirectory);
+      : packageName = getPackageName(projectDirectory, fileSystem),
+        dartFiles = new PackageDartFiles.from(projectDirectory);
 
   bool accept(String fileName, [FileSystem fileSystem = const FileSystem()]) {
     log.info("ANALYZING $fileName");
@@ -44,13 +44,14 @@ class PackageFilter {
     return false;
   }
 
-  /// Returns the name of the package located in [packageRoot].
+  /// Returns the name of the package located in [projectDirectory].
   ///
-  /// This searches [packageRoot] for a yaml file, which it then
+  /// This searches [projectDirectory] for a yaml file, which it then
   /// parses for the top level attribute name, which it then returns.
-  static String getPackageName(Directory packageRoot,
+  static String getPackageName(String projectDirectory,
       [FileSystem fileSystem = const FileSystem()]) {
-    var pubspecFile = fileSystem.getFile(packageRoot.path + "/pubspec.yaml");
+    var pubspecFile =
+        fileSystem.getFile(p.join(projectDirectory, "pubspec.yaml"));
     var pubspecContent = pubspecFile.readAsStringSync();
     var yaml = loadYaml(pubspecContent);
     return yaml["name"];
@@ -63,10 +64,10 @@ class PackageDartFiles {
 
   PackageDartFiles(this.testFiles, this.implementationFiles);
 
-  factory PackageDartFiles.from(Directory packageDirectory) {
-    var testFiles = _getTestFiles(packageDirectory).toList();
-    var implementationFiles =
-        _getImplementationFiles(packageDirectory).toList();
+  factory PackageDartFiles.from(String projectDirectory) {
+    var dir = new Directory(projectDirectory);
+    var testFiles = _getTestFiles(dir).toList();
+    var implementationFiles = _getImplementationFiles(dir).toList();
 
     testFiles.forEach(
         (file) => log.info("Test file: ${p.normalize(file.absolute.path)}"));
@@ -106,8 +107,8 @@ class SourceFileReport {
 
   SourceFileReport(this.sourceFile, this.coverage);
 
-  static SourceFileReport parse(LcovPart lcov, Directory packageRoot) {
-    var sourceFile = SourceFile.parse(lcov.heading, packageRoot);
+  static SourceFileReport parse(LcovPart lcov, String packageDir) {
+    var sourceFile = SourceFile.parse(lcov.heading, packageDir);
     var coverage = Coverage.parse(lcov.content);
     return new SourceFileReport(sourceFile, coverage);
   }
@@ -125,36 +126,34 @@ class SourceFile {
 
   SourceFile(this.name, this.source);
 
-  static SourceFile parse(String heading, Directory packageRoot,
+  static SourceFile parse(String heading, String packageDir,
       {FileSystem fileSystem: const FileSystem()}) {
     var path = heading.split(":").last;
-    var name = resolveName(path, packageRoot, fileSystem: fileSystem);
-    var sourceFile = getSourceFile(path, packageRoot, fileSystem: fileSystem);
+    var name = resolveName(path, packageDir, fileSystem: fileSystem);
+    var sourceFile = getSourceFile(path, packageDir, fileSystem: fileSystem);
     var source = sourceFile.readAsStringSync();
     return new SourceFile(name, source);
   }
 
-  static String resolveName(String path, Directory packageRoot,
+  static String resolveName(String path, String projectDirectory,
       {FileSystem fileSystem: const FileSystem()}) {
     var file = fileSystem.getFile(path);
-    var sep = Platform.pathSeparator;
     if (!file.isAbsolute) {
-      var packagePath = packageRoot.path + "${sep}packages$sep$path";
+      var packagePath = p.join(projectDirectory, 'packages', path);
       file = fileSystem.getFile(packagePath);
       file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     }
-    var ctx = new p.Context(current: packageRoot.absolute.path);
-    var name = ctx.relative(file.path);
-    return name;
+
+    return p.relative(file.path, from: projectDirectory);
   }
 
-  static File getSourceFile(String path, Directory packageRoot,
+  static File getSourceFile(String path, String packageDir,
       {FileSystem fileSystem: const FileSystem()}) {
     var file = fileSystem.getFile(path);
     if (file.existsSync()) {
       return file.absolute;
     }
-    file = fileSystem.getFile(packageRoot.path + "/packages/$path");
+    file = fileSystem.getFile(p.join(packageDir, 'packages', path));
     file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     return file.absolute;
   }
@@ -218,16 +217,16 @@ class SourceFileReports {
 
   SourceFileReports(this.sourceFileReports);
 
-  static SourceFileReports parse(LcovDocument lcov, Directory packageRoot,
+  static SourceFileReports parse(LcovDocument lcov, String projectDirectory,
       {bool excludeTestFiles: false}) {
-    var filter =
-        new PackageFilter.from(packageRoot, excludeTestFiles: excludeTestFiles);
+    var filter = new PackageFilter.from(projectDirectory,
+        excludeTestFiles: excludeTestFiles);
 
     var relevantParts =
         lcov.parts.where((part) => filter.accept(part.fileName));
 
     var reports = relevantParts
-        .map((part) => SourceFileReport.parse(part, packageRoot))
+        .map((part) => SourceFileReport.parse(part, projectDirectory))
         .toList();
     return new SourceFileReports(reports);
   }
@@ -243,10 +242,10 @@ class CoverallsReport {
       this.repoToken, this.sourceFileReports, this.gitData, this.serviceName);
 
   static CoverallsReport parse(String repoToken, LcovDocument lcov,
-      Directory packageRoot, String serviceName,
+      String projectDirectory, String serviceName,
       {bool excludeTestFiles: false}) {
-    var gitData = GitData.getGitData(packageRoot);
-    var reports = SourceFileReports.parse(lcov, packageRoot,
+    var gitData = GitData.getGitData(new Directory(projectDirectory));
+    var reports = SourceFileReports.parse(lcov, projectDirectory,
         excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData, serviceName);
   }
@@ -278,15 +277,15 @@ Iterable<File> _getDartFiles(FileSystemEntity entity) sync* {
   }
 }
 
-Iterable<File> _getImplementationFiles(Directory packageDirectory) =>
-    packageDirectory
+Iterable<File> _getImplementationFiles(Directory projectDirectory) =>
+    projectDirectory
         .listSync(recursive: false, followLinks: false)
         .where((entity) => !PackageDartFiles.isTestDirectory(entity))
         .expand(_getDartFiles);
 
-Iterable<File> _getTestFiles(Directory packageDirectory) sync* {
+Iterable<File> _getTestFiles(Directory projectDirectory) sync* {
   try {
-    Directory testDirectory = packageDirectory
+    Directory testDirectory = projectDirectory
         .listSync(followLinks: false)
         .singleWhere(PackageDartFiles.isTestDirectory) as Directory;
     yield* _getDartFiles(testDirectory);

@@ -1,5 +1,13 @@
 ### 0.2.0
 
+* A number of (breaking) changes to clarify and correctly distinguish between
+  `projectDirectory` – the directory containing the source project – and
+  `packageRoot` – the directory containing the project packages,
+  usually located at `<projectDirectory>/packages`.
+
+* A number of (breaking) changes to pass around paths – as `String` – instead of
+  `File` and `Directory` instances.
+
 * `CommandLinePart` and subtypes execute methods are now explicitly async.
 
 * Added a lot more logging, especially in error cases.

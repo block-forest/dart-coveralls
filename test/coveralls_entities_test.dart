@@ -84,9 +84,6 @@ void main() {
     test("getPackageName", () {
       var fileSystem = new FileSystemMock();
       var fileMock = new FileMock();
-      var dirMock = new DirectoryMock();
-
-      dirMock.when(callsTo("get path")).thenReturn(".");
       fileMock
           .when(callsTo("readAsStringSync"))
           .thenReturn("name: dart_coveralls");
@@ -94,13 +91,12 @@ void main() {
           .when(callsTo("getFile", "./pubspec.yaml"))
           .thenReturn(fileMock);
 
-      var name = PackageFilter.getPackageName(dirMock, fileSystem);
+      var name = PackageFilter.getPackageName('.', fileSystem);
       expect(name, equals("dart_coveralls"));
       fileSystem
           .getLogs(callsTo("getFile", "./pubspec.yaml"))
           .verify(happenedOnce);
       fileMock.getLogs(callsTo("readAsStringSync")).verify(happenedOnce);
-      dirMock.getLogs(callsTo("get path")).verify(happenedOnce);
     });
 
     test("accept", () {
@@ -190,13 +186,12 @@ void main() {
       test("existing File", () {
         var fileMock = new FileMock();
         var fileSystem = new FileSystemMock();
-        var dirMock = new DirectoryMock();
 
         fileMock.when(callsTo("existsSync")).thenReturn(true);
         fileMock.when(callsTo("get absolute")).thenReturn(fileMock);
         fileSystem.when(callsTo("getFile", "test.file")).thenReturn(fileMock);
-        var file = SourceFile.getSourceFile("test.file", dirMock,
-            fileSystem: fileSystem);
+        var file =
+            SourceFile.getSourceFile("test.file", '.', fileSystem: fileSystem);
 
         expect(identical(fileMock, file), isTrue);
       });
@@ -223,7 +218,7 @@ void main() {
             .thenReturn(resolvedFile);
         resolvedFile.when(callsTo("get absolute")).thenReturn(resolvedFile);
 
-        var file = SourceFile.getSourceFile("dart_coveralls/test.file", dirMock,
+        var file = SourceFile.getSourceFile("dart_coveralls/test.file", '.',
             fileSystem: fileSystem);
 
         expect(identical(file, resolvedFile), isTrue);
