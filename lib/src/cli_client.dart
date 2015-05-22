@@ -4,33 +4,29 @@ import 'dart:async' show Future, Completer;
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:mockable_filesystem/filesystem.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import 'collect_lcov.dart';
-import 'coveralls_entities.dart';
 import 'coveralls_endpoint.dart';
+import 'coveralls_entities.dart';
 import 'log.dart';
 import 'process_system.dart';
 
 class CommandLineClient {
-  final FileSystem fileSystem;
   final Directory packageRoot;
   final String token;
   final String serviceName;
 
-  CommandLineClient(Directory packageRoot, {String token,
-      FileSystem fileSystem: const FileSystem(),
-      Map<String, String> environment})
-      : fileSystem = fileSystem,
-        packageRoot = packageRoot,
+  CommandLineClient(Directory packageRoot,
+      {String token, Map<String, String> environment})
+      : packageRoot = packageRoot,
         serviceName = getServiceName(environment),
         token = getToken(token, environment);
 
   Future<CoverageResult<String>> getLcovResult(File testFile,
       {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
-    var collector = new LcovCollector(packageRoot, testFile,
-        fileSystem: fileSystem, processSystem: processSystem);
+    var collector =
+        new LcovCollector(packageRoot, testFile, processSystem: processSystem);
     return collector.getLcovInformation(workers: workers);
   }
 

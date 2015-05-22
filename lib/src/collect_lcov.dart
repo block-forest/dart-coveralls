@@ -4,7 +4,6 @@ import "dart:async" show Future;
 import "dart:io";
 
 import "package:coverage/coverage.dart";
-import "package:mockable_filesystem/filesystem.dart" show FileSystem;
 import "package:path/path.dart";
 
 import "process_system.dart";
@@ -89,45 +88,49 @@ class LcovCollector {
   final String sdkRoot;
   final File testFile;
   final Directory packageRoot;
-  final FileSystem fileSystem;
   final ProcessSystem processSystem;
 
   LcovCollector(this.packageRoot, this.testFile,
-      {this.fileSystem: const FileSystem(),
-      this.processSystem: const ProcessSystem(), this.sdkRoot});
+      {this.processSystem: const ProcessSystem(), this.sdkRoot});
 
+  // TODO: perhaps provide an option to NOT delete the temp file and instead
+  //       print out the path for other tooling
   /// Returns an LCOV string of the tested [File].
   ///
   /// Calculates and returns LCOV information of the tested [File].
   /// This uses [workers] to parse the collected information.
   Future<CoverageResult<String>> getLcovInformation({int workers: 1}) async {
-    var reportFile = _getCoverageJson();
+    Directory tempDir =
+        await Directory.systemTemp.createTemp('dart_coveralls.');
+    try {
+      var reportFile = await _getCoverageJson(tempDir);
 
-    var hitmap = await parseCoverage([reportFile.result], workers);
-    var resolver =
-        new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
-    var formatter = new LcovFormatter(resolver);
-    reportFile.result.deleteSync();
+      var hitmap = await parseCoverage([reportFile.result], workers);
+      var resolver =
+          new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
+      var formatter = new LcovFormatter(resolver);
 
-    var res = await formatter.format(hitmap);
-    return new CoverageResult(res, reportFile.processResult);
+      var res = await formatter.format(hitmap);
+      return new CoverageResult(res, reportFile.processResult);
+    } finally {
+      await tempDir.delete(recursive: true);
+    }
   }
 
   /// Generates and returns a coverage json file
-  CoverageResult<File> _getCoverageJson() {
-    var current = fileSystem.getDirectory(fileSystem.currentDirectory);
+  Future<CoverageResult<File>> _getCoverageJson(Directory coverageDir) async {
     var args = [
       "--enable-vm-service:9999",
-      "--coverage_dir=${current.path}",
+      "--coverage_dir=${coverageDir.path}",
       testFile.absolute.path
     ];
-    var result = processSystem.runProcessSync("dart", args);
+    var result = await processSystem.runProcess("dart", args);
     if (result.exitCode < 0) {
       throw new ProcessException('dart', args,
           'There was a critical error. Exit code: ${result.exitCode}',
           result.exitCode);
     }
-    var reportFile = _getYoungestDartCoverageFile(current);
+    var reportFile = _getYoungestDartCoverageFile(coverageDir);
     return new CoverageResult<File>(reportFile, result);
   }
 }

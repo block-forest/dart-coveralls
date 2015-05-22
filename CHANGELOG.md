@@ -11,6 +11,11 @@
 
 * Added a `print-json` option to `report`.
 
+* `LcovCollector` now puts coverage output in a temporary directory.
+
+* `CommandLineClient` and `LcovCollector` removed dependency on `FileSystem`.
+  Constructors and fields were changed accordingly.
+
 ### 0.1.12
 
 * Support latest versions of `args` and `coverage` packages.

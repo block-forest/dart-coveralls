@@ -65,7 +65,8 @@ class PackageDartFiles {
 
   factory PackageDartFiles.from(Directory packageDirectory) {
     var testFiles = _getTestFiles(packageDirectory).toList();
-    var implementationFiles = _getImplementationFiles(packageDirectory).toList();
+    var implementationFiles =
+        _getImplementationFiles(packageDirectory).toList();
 
     testFiles.forEach(
         (file) => log.info("Test file: ${p.normalize(file.absolute.path)}"));
