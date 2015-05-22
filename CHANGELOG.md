@@ -15,6 +15,9 @@
 
 * `CommandLineClient` and `LcovCollector` removed dependency on `FileSystem`.
   Constructors and fields were changed accordingly.
+  
+* `LcovCollector` now parses *all* coverage output files.
+  There is a lot less missed coverage, especially when isolates are being used.
 
 ### 0.1.12
 

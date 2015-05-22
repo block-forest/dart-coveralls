@@ -4,45 +4,8 @@ import "dart:async" show Future;
 import "dart:io";
 
 import "package:coverage/coverage.dart";
-import "package:path/path.dart";
 
 import "process_system.dart";
-
-/// Checks the given directory for the most recently changed dart coverage file
-File _getYoungestDartCoverageFile(Directory dir) {
-  var files = dir.listSync();
-  var coverageFiles = files
-      .where(_isDartCoverageEntity)
-      .map((f) => f as File)
-      .toList() as List<File>;
-  return _youngestElement(coverageFiles);
-}
-
-/// Returns the most recently changed file among the given files
-File _youngestElement(Iterable<File> files) {
-  if (files.isEmpty) throw new Exception("Empty iterable");
-
-  var max = files.first;
-  var maxStats = max.statSync();
-  var iterable = files.skip(1);
-
-  for (var file in iterable) {
-    var stats = file.statSync();
-    if (0 > stats.changed.compareTo(maxStats.changed)) {
-      maxStats = stats;
-      max = file;
-    }
-  }
-
-  return max;
-}
-
-/// Checks if the given entity is a file and checks its name against a pattern
-bool _isDartCoverageEntity(FileSystemEntity file) {
-  if (file is! File) return false;
-  var name = basename(file.path);
-  return name.startsWith("dart-cov") && name.endsWith(".json");
-}
 
 class LcovDocument {
   final List<LcovPart> parts;
@@ -105,7 +68,7 @@ class LcovCollector {
     try {
       var reportFile = await _getCoverageJson(tempDir);
 
-      var hitmap = await parseCoverage([reportFile.result], workers);
+      var hitmap = await parseCoverage(reportFile.result, workers);
       var resolver =
           new Resolver(packageRoot: packageRoot.path, sdkRoot: sdkRoot);
       var formatter = new LcovFormatter(resolver);
@@ -118,7 +81,8 @@ class LcovCollector {
   }
 
   /// Generates and returns a coverage json file
-  Future<CoverageResult<File>> _getCoverageJson(Directory coverageDir) async {
+  Future<CoverageResult<List<File>>> _getCoverageJson(
+      Directory coverageDir) async {
     var args = [
       "--enable-vm-service:9999",
       "--coverage_dir=${coverageDir.path}",
@@ -130,8 +94,9 @@ class LcovCollector {
           'There was a critical error. Exit code: ${result.exitCode}',
           result.exitCode);
     }
-    var reportFile = _getYoungestDartCoverageFile(coverageDir);
-    return new CoverageResult<File>(reportFile, result);
+    var reportFiles =
+        await coverageDir.list(recursive: false, followLinks: false).toList();
+    return new CoverageResult<List<File>>(reportFiles, result);
   }
 }
 
