@@ -8,7 +8,9 @@ import "package:args/args.dart";
 export "package:args/args.dart";
 
 abstract class CommandLinePart {
-  ArgParser get parser;
+  final ArgParser parser;
+
+  CommandLinePart(this.parser);
 
   Future parseAndExecute(List<String> args) => execute(parser.parse(args));
 
@@ -27,13 +29,12 @@ class CommandLineHubBuilder {
   CommandLineHub build() => new CommandLineHub._(_parts);
 }
 
-class CommandLineHub extends Object with CommandLinePart {
+class CommandLineHub extends CommandLinePart {
   final Map<PartInfo, CommandLinePart> _parts;
-  final ArgParser parser;
 
   CommandLineHub._(Map<PartInfo, CommandLinePart> parts)
       : _parts = parts,
-        parser = _initializeParser(parts);
+        super(_initializeParser(parts));
 
   Future execute(ArgResults results) async {
     if (results["help"]) {
@@ -64,13 +65,6 @@ class CommandLineHub extends Object with CommandLinePart {
     return "Possible commands are: \n\n" +
         _parts.keys.map((info) => info.toString(len)).join("\n");
   }
-
-  static ArgParser _initializeParser(Map<PartInfo, CommandLinePart> parts) {
-    var parser = new ArgParser(allowTrailingOptions: false);
-    parts.forEach((info, part) => parser.addCommand(info.name, part.parser));
-    parser.addFlag("help", negatable: false);
-    return parser;
-  }
 }
 
 class PartInfo {
@@ -90,4 +84,11 @@ class PartInfo {
     if (null == nameLength) nameLength = name.length;
     return "  ${name.padRight(nameLength)}\t$description";
   }
+}
+
+ArgParser _initializeParser(Map<PartInfo, CommandLinePart> parts) {
+  var parser = new ArgParser(allowTrailingOptions: false);
+  parts.forEach((info, part) => parser.addCommand(info.name, part.parser));
+  parser.addFlag("help", negatable: false);
+  return parser;
 }

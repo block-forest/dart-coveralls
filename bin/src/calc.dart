@@ -9,20 +9,7 @@ import 'package:path/path.dart' as p;
 import 'command_line.dart';
 
 class CalcPart extends CommandLinePart {
-  final ArgParser parser;
-
-  CalcPart() : parser = _initializeParser();
-
-  static ArgParser _initializeParser() {
-    return new ArgParser(allowTrailingOptions: true)
-      ..addFlag("help", help: "Prints this help", negatable: false)
-      ..addOption("workers",
-          help: "Number of workers for parsing", defaultsTo: "1")
-      ..addOption("output", help: "Output file path")
-      ..addOption("package-root",
-          help: 'Where to find packages, that is, "package:..." imports.',
-          defaultsTo: "packages");
-  }
+  CalcPart() : super(_initializeParser());
 
   Future execute(ArgResults res) async {
     String packageRoot = res["package-root"];
@@ -63,3 +50,11 @@ class CalcPart extends CommandLinePart {
     }
   }
 }
+
+ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
+  ..addFlag("help", help: "Prints this help", negatable: false)
+  ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+  ..addOption("output", help: "Output file path")
+  ..addOption("package-root",
+      help: 'Where to find packages, that is, "package:..." imports.',
+      defaultsTo: "packages");

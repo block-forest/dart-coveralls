@@ -9,42 +9,7 @@ import 'package:stack_trace/stack_trace.dart';
 import "command_line.dart";
 
 class ReportPart extends CommandLinePart {
-  final ArgParser parser;
-
-  ReportPart() : parser = _initializeParser();
-
-  static ArgParser _initializeParser() {
-    return new ArgParser(allowTrailingOptions: true)
-      ..addFlag("help", help: "Displays this help", negatable: false)
-      ..addOption("token",
-          help: "Token for coveralls", defaultsTo: Platform.environment["test"])
-      ..addOption("workers",
-          help: "Number of workers for parsing", defaultsTo: "1")
-      ..addOption("package-root",
-          help: 'Where to find packages, that is, "package:..." imports.',
-          defaultsTo: "packages")
-      ..addFlag("debug", help: "Prints debug information", negatable: false)
-      ..addOption("retry", help: "Number of retries", defaultsTo: "10")
-      ..addFlag("dry-run",
-          help: "If this flag is enabled, data won't be sent to coveralls",
-          negatable: false)
-      ..addFlag("throw-on-connectivity-error",
-          help: "Should this throw an " "exception, if the upload to coveralls fails?",
-          negatable: false,
-          abbr: "C")
-      ..addFlag("throw-on-error", help: "Should this throw if "
-          "an error in the dart_coveralls implementation happens?",
-          negatable: false,
-          abbr: "E")
-      ..addFlag("exclude-test-files",
-          abbr: "T",
-          help: "Should test files be included in the coveralls report?",
-          negatable: false)
-      ..addFlag("print-json",
-          abbr: 'p',
-          help: "Pretty-print the json that will be sent to coveralls.",
-          negatable: false);
-  }
+  ReportPart() : super(_initializeParser());
 
   Future execute(ArgResults res) async {
     if (res["help"]) return print(parser.usage);
@@ -102,3 +67,33 @@ class ReportPart extends CommandLinePart {
     }, onError: errorFunction);
   }
 }
+
+ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
+  ..addFlag("help", help: "Displays this help", negatable: false)
+  ..addOption("token",
+      help: "Token for coveralls", defaultsTo: Platform.environment["test"])
+  ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+  ..addOption("package-root",
+      help: 'Where to find packages, that is, "package:..." imports.',
+      defaultsTo: "packages")
+  ..addFlag("debug", help: "Prints debug information", negatable: false)
+  ..addOption("retry", help: "Number of retries", defaultsTo: "10")
+  ..addFlag("dry-run",
+      help: "If this flag is enabled, data won't be sent to coveralls",
+      negatable: false)
+  ..addFlag("throw-on-connectivity-error",
+      help: "Should this throw an " "exception, if the upload to coveralls fails?",
+      negatable: false,
+      abbr: "C")
+  ..addFlag("throw-on-error", help: "Should this throw if "
+      "an error in the dart_coveralls implementation happens?",
+      negatable: false,
+      abbr: "E")
+  ..addFlag("exclude-test-files",
+      abbr: "T",
+      help: "Should test files be included in the coveralls report?",
+      negatable: false)
+  ..addFlag("print-json",
+      abbr: 'p',
+      help: "Pretty-print the json that will be sent to coveralls.",
+      negatable: false);
