@@ -63,7 +63,7 @@ class GitCommit {
     var id = lines.first.split(" ").last;
     var author = new GitAuthor.fromPersonString(lines[1]);
     var committer = new GitCommitter.fromPersonString(lines[2]);
-    var message = lines.sublist(4, getDiffStart(lines)).join("\n");
+    var message = lines.sublist(4, getDiffStart(lines)).join("\n").trim();
     return new GitCommit(id, author, committer, message);
   }
 
