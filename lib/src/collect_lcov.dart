@@ -96,6 +96,10 @@ class LcovCollector {
     ];
     var result = await processSystem.runProcess(Platform.executable, args);
     if (result.exitCode < 0) {
+      stderr.writeln('stdout:');
+      stderr.writeln(result.stdout);
+      stderr.writeln('stderr:');
+      stderr.writeln(result.stderr);
       throw new ProcessException(Platform.executable, args,
           'There was a critical error. Exit code: ${result.exitCode}',
           result.exitCode);
