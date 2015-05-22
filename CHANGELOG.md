@@ -18,6 +18,8 @@
   
 * `LcovCollector` now parses *all* coverage output files.
   There is a lot less missed coverage, especially when isolates are being used.
+  
+* Minimum version of `coverage` was bumped to `0.6.4`.
 
 ### 0.1.12
 

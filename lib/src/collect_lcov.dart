@@ -74,7 +74,7 @@ class LcovCollector {
       var formatter = new LcovFormatter(resolver);
 
       var res = await formatter.format(hitmap);
-      return new CoverageResult(res, reportFile.processResult);
+      return new CoverageResult<String>(res, reportFile.processResult);
     } finally {
       await tempDir.delete(recursive: true);
     }
