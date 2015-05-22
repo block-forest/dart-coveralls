@@ -6,6 +6,10 @@
 
 * `covString` and related are removed from all classes. Using standard `toJson`
   method supported by `dart:convert` `JSON`.
+  
+* A number of public helper methods were moved to private, top-level functions.
+
+* Added a `print-json` option to `report`.
 
 ### 0.1.12
 

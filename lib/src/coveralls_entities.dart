@@ -3,7 +3,7 @@ library dart_coveralls.coveralls_entities;
 import 'dart:io' show Directory, File, Platform, FileSystemEntity, Link;
 
 import 'package:mockable_filesystem/filesystem.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import 'collect_lcov.dart';
@@ -64,14 +64,14 @@ class PackageDartFiles {
   PackageDartFiles(this.testFiles, this.implementationFiles);
 
   factory PackageDartFiles.from(Directory packageDirectory) {
-    var testFiles = getTestFiles(packageDirectory);
-    var implementationFiles = getImplementationFiles(packageDirectory);
+    var testFiles = _getTestFiles(packageDirectory).toList();
+    var implementationFiles = _getImplementationFiles(packageDirectory).toList();
 
     testFiles.forEach(
-        (file) => log.info("Test file: ${normalize(file.absolute.path)}"));
+        (file) => log.info("Test file: ${p.normalize(file.absolute.path)}"));
 
     implementationFiles.forEach((file) =>
-        log.info("Implementation file: ${normalize(file.absolute.path)}"));
+        log.info("Implementation file: ${p.normalize(file.absolute.path)}"));
 
     return new PackageDartFiles(testFiles, implementationFiles);
   }
@@ -85,61 +85,13 @@ class PackageDartFiles {
         .any((implFile) => sameAbsolutePath(implFile, file));
   }
 
-  static List<File> getImplementationFiles(Directory packageDirectory) {
-    return packageDirectory
-        .listSync(recursive: false, followLinks: false)
-        .where((entity) => !isTestDirectory(entity))
-        .map(getDartFiles)
-        .fold([], (l1, l2) => l1..addAll(l2));
-  }
-
-  static List<File> getTestFiles(Directory packageDirectory) {
-    try {
-      Directory testDirectory = packageDirectory
-          .listSync(followLinks: false)
-          .singleWhere(isTestDirectory) as Directory;
-      return getDartFiles(testDirectory);
-    } on StateError {
-      return [];
-    }
-  }
-
-  static bool isTestDirectory(FileSystemEntity entity) {
-    return entity is Directory && "test" == basename(entity.path);
-  }
+  static bool isTestDirectory(FileSystemEntity entity) =>
+      entity is Directory && "test" == p.basename(entity.path);
 
   static bool sameAbsolutePath(File f1, File f2) {
-    var absolutePath1 = normalize(f1.absolute.path);
-    var absolutePath2 = normalize(f2.absolute.path);
+    var absolutePath1 = p.normalize(f1.absolute.path);
+    var absolutePath2 = p.normalize(f2.absolute.path);
     return absolutePath1 == absolutePath2;
-  }
-
-  /// Searches the given [entity] for dart files.
-  ///
-  /// If [entity] is a [Link], an empty list is returned.
-  ///
-  /// If [entity] is a [File], then a list with the [entity]
-  /// as single element is returned.
-  ///
-  /// If [entity] is a [Directory], the subentities are listed
-  /// non-recursively and links are not followed. On the
-  /// resulting entities, this method is applied again.
-  /// The resulting lists are combined into one and then returned.
-  ///
-  /// If the entity is none of the previous types, an empty list is
-  /// returned.
-  static List<File> getDartFiles(FileSystemEntity entity) {
-    if (entity is Link) return [];
-    if (entity is File) {
-      if (".dart" == extension(entity.path)) return [entity];
-      return [];
-    }
-    if (entity is Directory) {
-      var subEntities = entity.listSync(recursive: false, followLinks: false);
-
-      return subEntities.map(getDartFiles).fold([], (l1, l2) => l1..addAll(l2));
-    }
-    return [];
   }
 }
 
@@ -190,7 +142,7 @@ class SourceFile {
       file = fileSystem.getFile(packagePath);
       file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     }
-    var ctx = new Context(current: packageRoot.absolute.path);
+    var ctx = new p.Context(current: packageRoot.absolute.path);
     var name = ctx.relative(file.path);
     return name;
   }
@@ -300,9 +252,42 @@ class CoverallsReport {
 
   Map toJson() => {
     "repo_token": repoToken,
-    "git": gitData.toJson(),
+    "git": gitData,
     "service_name": serviceName,
-    "source_files":
-        sourceFileReports.sourceFileReports.map((rep) => rep.toJson()).toList()
+    "source_files": sourceFileReports.sourceFileReports.toList()
   };
+}
+
+/// Yields the Dart files represented by [entity].
+///
+/// If [entity] is a Dart [File], it is yielded.
+///
+/// If [entity] is a [Directory], the sub-entities that are Dart files are
+/// yielded recursively.
+///
+/// If the entity is none of the previous types, nothing is yielded.
+Iterable<File> _getDartFiles(FileSystemEntity entity) sync* {
+  if (entity is File) {
+    if (".dart" == p.extension(entity.path)) {
+      yield entity;
+    }
+  } else if (entity is Directory) {
+    var subEntities = entity.listSync(recursive: false, followLinks: false);
+    yield* subEntities.expand(_getDartFiles);
+  }
+}
+
+Iterable<File> _getImplementationFiles(Directory packageDirectory) =>
+    packageDirectory
+        .listSync(recursive: false, followLinks: false)
+        .where((entity) => !PackageDartFiles.isTestDirectory(entity))
+        .expand(_getDartFiles);
+
+Iterable<File> _getTestFiles(Directory packageDirectory) sync* {
+  try {
+    Directory testDirectory = packageDirectory
+        .listSync(followLinks: false)
+        .singleWhere(PackageDartFiles.isTestDirectory) as Directory;
+    yield* _getDartFiles(testDirectory);
+  } on StateError {}
 }

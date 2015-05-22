@@ -57,7 +57,7 @@ class CommandLineClient {
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress, bool dryRun: false,
       bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false}) async {
+      bool excludeTestFiles: false, bool printJson}) async {
     var rawLcov = await getLcovResult(testFile,
         workers: workers, processSystem: processSystem);
 
@@ -66,11 +66,15 @@ class CommandLineClient {
     var report = CoverallsReport.parse(token, lcov, packageRoot, serviceName,
         excludeTestFiles: excludeTestFiles);
     var endpoint = new CoverallsEndpoint(coverallsAddress);
+
+    if (printJson) {
+      print(const JsonEncoder.withIndent('  ').convert(report));
+    }
+
     if (dryRun) return;
 
     try {
-      var json = report.toJson();
-      var encoded = JSON.encode(json);
+      var encoded = JSON.encode(report);
       await _sendLoop(endpoint, encoded, retry: retry);
     } catch (e, stack) {
       if (throwOnConnectivityError) rethrow;

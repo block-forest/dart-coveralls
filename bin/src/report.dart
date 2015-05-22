@@ -24,21 +24,23 @@ class ReportPart extends CommandLinePart {
       ..addFlag("debug", help: "Prints debug information", negatable: false)
       ..addOption("retry", help: "Number of retries", defaultsTo: "10")
       ..addFlag("dry-run",
-          help: "If this flag is enabled, data won't" + " be sent to coveralls",
+          help: "If this flag is enabled, data won't be sent to coveralls",
           negatable: false)
       ..addFlag("throw-on-connectivity-error",
-          help: "Should this throw an " +
-              "exception, if the upload to coveralls fails?",
+          help: "Should this throw an " "exception, if the upload to coveralls fails?",
           negatable: false,
           abbr: "C")
-      ..addFlag("throw-on-error",
-          help: "Should this throw if " +
-              "an error in the dart_coveralls implementation happens?",
+      ..addFlag("throw-on-error", help: "Should this throw if "
+          "an error in the dart_coveralls implementation happens?",
           negatable: false,
           abbr: "E")
       ..addFlag("exclude-test-files",
           abbr: "T",
-          help: "Should test files " + "be included in the coveralls report?",
+          help: "Should test files be included in the coveralls report?",
+          negatable: false)
+      ..addFlag("print-json",
+          abbr: 'p',
+          help: "Pretty-print the json that will be sent to coveralls.",
           negatable: false);
   }
 
@@ -66,6 +68,7 @@ class ReportPart extends CommandLinePart {
     var throwOnError = res["throw-on-error"];
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
     var excludeTestFiles = res["exclude-test-files"];
+    var printJson = res["print-json"];
 
     if (!pRoot.existsSync()) return print("Root directory does not exist");
     log.info(() => "Package root is ${pRoot.absolute.path}");
@@ -91,7 +94,8 @@ class ReportPart extends CommandLinePart {
           dryRun: dryRun,
           retry: retry,
           throwOnConnectivityError: throwOnConnectivityError,
-          excludeTestFiles: excludeTestFiles);
+          excludeTestFiles: excludeTestFiles,
+          printJson: printJson);
     }, onError: errorFunction);
   }
 }
