@@ -94,9 +94,9 @@ class LcovCollector {
       "--package-root=${packageRoot}",
       testFile
     ];
-    var result = await processSystem.runProcess("dart", args);
+    var result = await processSystem.runProcess(Platform.executable, args);
     if (result.exitCode < 0) {
-      throw new ProcessException('dart', args,
+      throw new ProcessException(Platform.executable, args,
           'There was a critical error. Exit code: ${result.exitCode}',
           result.exitCode);
     }
