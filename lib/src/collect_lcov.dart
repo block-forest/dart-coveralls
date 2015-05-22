@@ -114,4 +114,16 @@ class CoverageResult<E> {
   final ProcessResult processResult;
 
   CoverageResult(this.result, this.processResult);
+
+  /// Prints `processResult.stdout`
+  ///
+  /// If `processResult.exitCode` is not zero, also prints the exit code and
+  /// `processResult.stderr`.
+  void printSummary() {
+    print(processResult.stdout);
+    if (processResult.exitCode != 0) {
+      print("Process exited with code ${processResult.exitCode}.");
+      print(processResult.stderr);
+    }
+  }
 }

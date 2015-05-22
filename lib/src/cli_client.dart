@@ -71,7 +71,7 @@ class CommandLineClient {
     var rawLcov = await getLcovResult(testFile,
         workers: workers, processSystem: processSystem);
 
-    print(rawLcov.processResult.stdout);
+    rawLcov.printSummary();
     var lcov = LcovDocument.parse(rawLcov.result.toString());
     var report = CoverallsReport.parse(
         token, lcov, projectDirectory, serviceName,

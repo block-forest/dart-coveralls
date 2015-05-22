@@ -42,7 +42,7 @@ class CalcPart extends CommandLinePart {
 
     var r = await collector.getLcovInformation(workers: workers);
 
-    print(r.processResult.stdout);
+    r.printSummary();
     if (res["output"] != null) {
       await new File(res["output"]).writeAsString(r.result);
     } else {
