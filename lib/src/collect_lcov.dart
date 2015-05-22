@@ -89,7 +89,6 @@ class LcovCollector {
   Future<CoverageResult<List<File>>> _getCoverageJson(
       Directory coverageDir) async {
     var args = [
-      "--enable-vm-service=0",
       "--coverage_dir=${coverageDir.path}",
       "--package-root=${packageRoot}",
       testFile
