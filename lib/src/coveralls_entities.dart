@@ -27,20 +27,20 @@ class PackageFilter {
     log.info("ANALYZING $fileName");
 
     if (fileName.startsWith(packageName)) {
-      log.info("ADDING $fileName");
+      log.info("  ADDING $fileName");
       return true;
     }
 
     var file = fileSystem.getFile(fileName);
-    log.info(() =>
-        "is implementation file? ${dartFiles.isImplementationFile(file)}");
-    log.info(() => "is test file? ${dartFiles.isTestFile(file)}");
+    log.info(
+        () => "  implementation file? ${dartFiles.isImplementationFile(file)}");
+    log.info(() => "  test file? ${dartFiles.isTestFile(file)}");
     if (dartFiles.isImplementationFile(file) ||
         (!excludeTestFiles && dartFiles.isTestFile(file))) {
-      log.info("ADDING $fileName");
+      log.info("  ADDING $fileName");
       return true;
     }
-    log.info("IGNORING $fileName");
+    log.info("  IGNORING $fileName");
     return false;
   }
 
