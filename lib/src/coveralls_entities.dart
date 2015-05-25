@@ -1,10 +1,9 @@
 library dart_coveralls.coveralls_entities;
 
-import 'dart:convert' show JSON;
 import 'dart:io' show Directory, File, Platform, FileSystemEntity, Link;
 
 import 'package:mockable_filesystem/filesystem.dart';
-import 'package:path/path.dart';
+import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 
 import 'collect_lcov.dart';
@@ -19,39 +18,40 @@ class PackageFilter {
   PackageFilter(this.packageName, this.dartFiles,
       {this.excludeTestFiles: false});
 
-  PackageFilter.from(Directory packageDirectory,
+  PackageFilter.from(String projectDirectory,
       {this.excludeTestFiles: false, FileSystem fileSystem: const FileSystem()})
-      : packageName = getPackageName(packageDirectory, fileSystem),
-        dartFiles = new PackageDartFiles.from(packageDirectory);
+      : packageName = getPackageName(projectDirectory, fileSystem),
+        dartFiles = new PackageDartFiles.from(projectDirectory);
 
   bool accept(String fileName, [FileSystem fileSystem = const FileSystem()]) {
     log.info("ANALYZING $fileName");
 
     if (fileName.startsWith(packageName)) {
-      log.info("ADDING $fileName");
+      log.info("  ADDING $fileName");
       return true;
     }
 
     var file = fileSystem.getFile(fileName);
-    log.info(() =>
-        "is implementation file? ${dartFiles.isImplementationFile(file)}");
-    log.info(() => "is test file? ${dartFiles.isTestFile(file)}");
+    log.info(
+        () => "  implementation file? ${dartFiles.isImplementationFile(file)}");
+    log.info(() => "  test file? ${dartFiles.isTestFile(file)}");
     if (dartFiles.isImplementationFile(file) ||
         (!excludeTestFiles && dartFiles.isTestFile(file))) {
-      log.info("ADDING $fileName");
+      log.info("  ADDING $fileName");
       return true;
     }
-    log.info("IGNORING $fileName");
+    log.info("  IGNORING $fileName");
     return false;
   }
 
-  /// Returns the name of the package located in [packageRoot].
+  /// Returns the name of the package located in [projectDirectory].
   ///
-  /// This searches [packageRoot] for a yaml file, which it then
+  /// This searches [projectDirectory] for a yaml file, which it then
   /// parses for the top level attribute name, which it then returns.
-  static String getPackageName(Directory packageRoot,
+  static String getPackageName(String projectDirectory,
       [FileSystem fileSystem = const FileSystem()]) {
-    var pubspecFile = fileSystem.getFile(packageRoot.path + "/pubspec.yaml");
+    var pubspecFile =
+        fileSystem.getFile(p.join(projectDirectory, "pubspec.yaml"));
     var pubspecContent = pubspecFile.readAsStringSync();
     var yaml = loadYaml(pubspecContent);
     return yaml["name"];
@@ -64,15 +64,16 @@ class PackageDartFiles {
 
   PackageDartFiles(this.testFiles, this.implementationFiles);
 
-  factory PackageDartFiles.from(Directory packageDirectory) {
-    var testFiles = getTestFiles(packageDirectory);
-    var implementationFiles = getImplementationFiles(packageDirectory);
+  factory PackageDartFiles.from(String projectDirectory) {
+    var dir = new Directory(projectDirectory);
+    var testFiles = _getTestFiles(dir).toList();
+    var implementationFiles = _getImplementationFiles(dir).toList();
 
     testFiles.forEach(
-        (file) => log.info("Test file: ${normalize(file.absolute.path)}"));
+        (file) => log.info("Test file: ${p.normalize(file.absolute.path)}"));
 
     implementationFiles.forEach((file) =>
-        log.info("Implementation file: ${normalize(file.absolute.path)}"));
+        log.info("Implementation file: ${p.normalize(file.absolute.path)}"));
 
     return new PackageDartFiles(testFiles, implementationFiles);
   }
@@ -86,72 +87,18 @@ class PackageDartFiles {
         .any((implFile) => sameAbsolutePath(implFile, file));
   }
 
-  static List<File> getImplementationFiles(Directory packageDirectory) {
-    return packageDirectory
-        .listSync(recursive: false, followLinks: false)
-        .where((entity) => !isTestDirectory(entity))
-        .map(getDartFiles)
-        .fold([], (l1, l2) => l1..addAll(l2));
-  }
-
-  static List<File> getTestFiles(Directory packageDirectory) {
-    try {
-      Directory testDirectory = packageDirectory
-          .listSync(followLinks: false)
-          .singleWhere(isTestDirectory) as Directory;
-      return getDartFiles(testDirectory);
-    } on StateError {
-      return [];
-    }
-  }
-
-  static bool isTestDirectory(FileSystemEntity entity) {
-    return entity is Directory && "test" == basename(entity.path);
-  }
+  static bool isTestDirectory(FileSystemEntity entity) =>
+      entity is Directory && "test" == p.basename(entity.path);
 
   static bool sameAbsolutePath(File f1, File f2) {
-    var absolutePath1 = normalize(f1.absolute.path);
-    var absolutePath2 = normalize(f2.absolute.path);
+    var absolutePath1 = p.normalize(f1.absolute.path);
+    var absolutePath2 = p.normalize(f2.absolute.path);
     return absolutePath1 == absolutePath2;
   }
-
-  /// Searches the given [entity] for dart files.
-  ///
-  /// If [entity] is a [Link], an empty list is returned.
-  ///
-  /// If [entity] is a [File], then a list with the [entity]
-  /// as single element is returned.
-  ///
-  /// If [entity] is a [Directory], the subentities are listed
-  /// non-recursively and links are not followed. On the
-  /// resulting entities, this method is applied again.
-  /// The resulting lists are combined into one and then returned.
-  ///
-  /// If the entity is none of the previous types, an empty list is
-  /// returned.
-  static List<File> getDartFiles(FileSystemEntity entity) {
-    if (entity is Link) return [];
-    if (entity is File) {
-      if (".dart" == extension(entity.path)) return [entity];
-      return [];
-    }
-    if (entity is Directory) {
-      var subEntities = entity.listSync(recursive: false, followLinks: false);
-
-      return subEntities.map(getDartFiles).fold([], (l1, l2) => l1..addAll(l2));
-    }
-    return [];
-  }
-}
-
-/// An interface for Coveralls-Convertable Entity
-abstract class CoverallsReportable {
-  /// Converts this into a json representation for Coveralls
-  String covString();
 }
 
 /// A Report of a single Source File
-class SourceFileReport implements CoverallsReportable {
+class SourceFileReport {
   /// Identification of this [SourceFileReport]
   final SourceFile sourceFile;
 
@@ -160,63 +107,61 @@ class SourceFileReport implements CoverallsReportable {
 
   SourceFileReport(this.sourceFile, this.coverage);
 
-  static SourceFileReport parse(LcovPart lcov, Directory packageRoot) {
-    var sourceFile = SourceFile.parse(lcov.heading, packageRoot);
+  static SourceFileReport parse(LcovPart lcov, String packageDir) {
+    var sourceFile = SourceFile.parse(lcov.heading, packageDir);
     var coverage = Coverage.parse(lcov.content);
     return new SourceFileReport(sourceFile, coverage);
   }
 
-  String covString() =>
-      "{" + sourceFile.covString() + ", " + coverage.covString() + "}";
+  Map toJson() => {
+    "name": sourceFile.name,
+    "source": sourceFile.source,
+    "coverage": coverage.values.map((lv) => lv.lineCount).toList()
+  };
 }
 
-class SourceFile implements CoverallsReportable {
+class SourceFile {
   final String name;
   final String source;
 
   SourceFile(this.name, this.source);
 
-  static SourceFile parse(String heading, Directory packageRoot,
+  static SourceFile parse(String heading, String packageDir,
       {FileSystem fileSystem: const FileSystem()}) {
     var path = heading.split(":").last;
-    var name = resolveName(path, packageRoot, fileSystem: fileSystem);
-    var sourceFile = getSourceFile(path, packageRoot, fileSystem: fileSystem);
+    var name = resolveName(path, packageDir, fileSystem: fileSystem);
+    var sourceFile = getSourceFile(path, packageDir, fileSystem: fileSystem);
     var source = sourceFile.readAsStringSync();
     return new SourceFile(name, source);
   }
 
-  static String resolveName(String path, Directory packageRoot,
+  static String resolveName(String path, String projectDirectory,
       {FileSystem fileSystem: const FileSystem()}) {
     var file = fileSystem.getFile(path);
-    var sep = Platform.pathSeparator;
     if (!file.isAbsolute) {
-      var packagePath = packageRoot.path + "${sep}packages$sep$path";
+      var packagePath = p.join(projectDirectory, 'packages', path);
       file = fileSystem.getFile(packagePath);
       file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     }
-    var ctx = new Context(current: packageRoot.absolute.path);
-    var name = ctx.relative(file.path);
-    return name;
+
+    return p.relative(file.path, from: projectDirectory);
   }
 
-  static File getSourceFile(String path, Directory packageRoot,
+  static File getSourceFile(String path, String packageDir,
       {FileSystem fileSystem: const FileSystem()}) {
     var file = fileSystem.getFile(path);
     if (file.existsSync()) {
       return file.absolute;
     }
-    file = fileSystem.getFile(packageRoot.path + "/packages/$path");
+    file = fileSystem.getFile(p.join(packageDir, 'packages', path));
     file = fileSystem.getFile(file.resolveSymbolicLinksSync());
     return file.absolute;
   }
-
-  String covString() =>
-      "\"name\": \"$name\", \"source\": ${JSON.encode(source)}";
 }
 
 /// [Coverage] represents basic coverage information. Coverage
 /// information consists of several LineValues.
-class Coverage implements CoverallsReportable {
+class Coverage {
   final List<LineValue> values;
 
   /// Instantiates a new [Coverage] with the given [LineValue]s.
@@ -239,13 +184,10 @@ class Coverage implements CoverallsReportable {
     }
     return new Coverage(values);
   }
-
-  String covString() =>
-      "\"coverage\": [" + values.map((val) => val.covString()).join(", ") + "]";
 }
 
 /// A [LineValue] represents a single line in an LCOV-File
-class LineValue implements CoverallsReportable {
+class LineValue {
   final int lineNumber;
   final int lineCount;
 
@@ -267,38 +209,30 @@ class LineValue implements CoverallsReportable {
     return new LineValue(lineNumber, lineCount);
   }
 
-  String covString() => lineCountRepresentation();
-
-  String lineCountRepresentation() => lineCount == null ? "null" : "$lineCount";
-
-  String toString() => "$lineNumber:${lineCountRepresentation()}";
+  String toString() => "$lineNumber:${lineCount}";
 }
 
-class SourceFileReports implements CoverallsReportable {
+class SourceFileReports {
   final List<SourceFileReport> sourceFileReports;
 
   SourceFileReports(this.sourceFileReports);
 
-  static SourceFileReports parse(LcovDocument lcov, Directory packageRoot,
+  static SourceFileReports parse(LcovDocument lcov, String projectDirectory,
       {bool excludeTestFiles: false}) {
-    var filter =
-        new PackageFilter.from(packageRoot, excludeTestFiles: excludeTestFiles);
+    var filter = new PackageFilter.from(projectDirectory,
+        excludeTestFiles: excludeTestFiles);
 
     var relevantParts =
         lcov.parts.where((part) => filter.accept(part.fileName));
 
     var reports = relevantParts
-        .map((part) => SourceFileReport.parse(part, packageRoot))
+        .map((part) => SourceFileReport.parse(part, projectDirectory))
         .toList();
     return new SourceFileReports(reports);
   }
-
-  String covString() => "\"source_files\": [" +
-      sourceFileReports.map((rep) => rep.covString()).join(", ") +
-      "]";
 }
 
-class CoverallsReport implements CoverallsReportable {
+class CoverallsReport {
   final String repoToken;
   final GitData gitData;
   final SourceFileReports sourceFileReports;
@@ -308,17 +242,52 @@ class CoverallsReport implements CoverallsReportable {
       this.repoToken, this.sourceFileReports, this.gitData, this.serviceName);
 
   static CoverallsReport parse(String repoToken, LcovDocument lcov,
-      Directory packageRoot, String serviceName,
+      String projectDirectory, String serviceName,
       {bool excludeTestFiles: false}) {
-    var gitData = GitData.getGitData(packageRoot);
-    var reports = SourceFileReports.parse(lcov, packageRoot,
+    var gitData = GitData.getGitData(new Directory(projectDirectory));
+    var reports = SourceFileReports.parse(lcov, projectDirectory,
         excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData, serviceName);
   }
 
-  String covString() => "{" +
-      "\"repo_token\": \"$repoToken\", " +
-      sourceFileReports.covString() +
-      ", \"git\": ${gitData.covString()}, " +
-      "\"service_name\": \"$serviceName\"}";
+  Map toJson() => {
+    "repo_token": repoToken,
+    "git": gitData,
+    "service_name": serviceName,
+    "source_files": sourceFileReports.sourceFileReports.toList()
+  };
+}
+
+/// Yields the Dart files represented by [entity].
+///
+/// If [entity] is a Dart [File], it is yielded.
+///
+/// If [entity] is a [Directory], the sub-entities that are Dart files are
+/// yielded recursively.
+///
+/// If the entity is none of the previous types, nothing is yielded.
+Iterable<File> _getDartFiles(FileSystemEntity entity) sync* {
+  if (entity is File) {
+    if (".dart" == p.extension(entity.path)) {
+      yield entity;
+    }
+  } else if (entity is Directory) {
+    var subEntities = entity.listSync(recursive: false, followLinks: false);
+    yield* subEntities.expand(_getDartFiles);
+  }
+}
+
+Iterable<File> _getImplementationFiles(Directory projectDirectory) =>
+    projectDirectory
+        .listSync(recursive: false, followLinks: false)
+        .where((entity) => !PackageDartFiles.isTestDirectory(entity))
+        .expand(_getDartFiles);
+
+Iterable<File> _getTestFiles(Directory projectDirectory) sync* {
+  try {
+    Directory testDirectory = projectDirectory
+        .listSync(followLinks: false)
+        .singleWhere(PackageDartFiles.isTestDirectory) as Directory;
+    yield* _getDartFiles(testDirectory);
+  } on StateError {}
 }

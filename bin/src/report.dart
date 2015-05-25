@@ -1,5 +1,6 @@
 library dart_coveralls.report;
 
+import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_coveralls/dart_coveralls.dart';
@@ -8,40 +9,9 @@ import 'package:stack_trace/stack_trace.dart';
 import "command_line.dart";
 
 class ReportPart extends CommandLinePart {
-  final ArgParser parser;
+  ReportPart() : super(_initializeParser());
 
-  ReportPart() : parser = _initializeParser();
-
-  static ArgParser _initializeParser() {
-    return new ArgParser(allowTrailingOptions: true)
-      ..addFlag("help", help: "Displays this help", negatable: false)
-      ..addOption("token",
-          help: "Token for coveralls", defaultsTo: Platform.environment["test"])
-      ..addOption("workers",
-          help: "Number of workers for parsing", defaultsTo: "1")
-      ..addOption("package-root", help: "Root package", defaultsTo: ".")
-      ..addFlag("debug", help: "Prints debug information", negatable: false)
-      ..addOption("retry", help: "Number of retries", defaultsTo: "10")
-      ..addFlag("dry-run",
-          help: "If this flag is enabled, data won't" + " be sent to coveralls",
-          negatable: false)
-      ..addFlag("throw-on-connectivity-error",
-          help: "Should this throw an " +
-              "exception, if the upload to coveralls fails?",
-          negatable: false,
-          abbr: "C")
-      ..addFlag("throw-on-error",
-          help: "Should this throw if " +
-              "an error in the dart_coveralls implementation happens?",
-          negatable: false,
-          abbr: "E")
-      ..addFlag("exclude-test-files",
-          abbr: "T",
-          help: "Should test files " + "be included in the coveralls report?",
-          negatable: false);
-  }
-
-  void execute(ArgResults res) {
+  Future execute(ArgResults res) async {
     if (res["help"]) return print(parser.usage);
     if (res.rest.length != 1) return print("Please specify a test file to run");
     if (res["debug"]) {
@@ -65,6 +35,7 @@ class ReportPart extends CommandLinePart {
     var throwOnError = res["throw-on-error"];
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
     var excludeTestFiles = res["exclude-test-files"];
+    var printJson = res["print-json"];
 
     if (!pRoot.existsSync()) return print("Root directory does not exist");
     log.info(() => "Package root is ${pRoot.absolute.path}");
@@ -82,15 +53,47 @@ class ReportPart extends CommandLinePart {
       if (throwOnError) throw e;
     };
 
-    Chain.capture(() {
-      var commandLineClient = new CommandLineClient(pRoot, token: token);
+    await Chain.capture(() async {
+      var commandLineClient =
+          new CommandLineClient(packageRoot: pRoot.absolute.path, token: token);
 
-      commandLineClient.reportToCoveralls(file,
+      await commandLineClient.reportToCoveralls(file.absolute.path,
           workers: workers,
           dryRun: dryRun,
           retry: retry,
           throwOnConnectivityError: throwOnConnectivityError,
-          excludeTestFiles: excludeTestFiles);
+          excludeTestFiles: excludeTestFiles,
+          printJson: printJson);
     }, onError: errorFunction);
   }
 }
+
+ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
+  ..addFlag("help", help: "Displays this help", negatable: false)
+  ..addOption("token",
+      help: "Token for coveralls", defaultsTo: Platform.environment["test"])
+  ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+  ..addOption("package-root",
+      help: 'Where to find packages, that is, "package:..." imports.',
+      defaultsTo: "packages")
+  ..addFlag("debug", help: "Prints debug information", negatable: false)
+  ..addOption("retry", help: "Number of retries", defaultsTo: "10")
+  ..addFlag("dry-run",
+      help: "If this flag is enabled, data won't be sent to coveralls",
+      negatable: false)
+  ..addFlag("throw-on-connectivity-error",
+      help: "Should this throw an " "exception, if the upload to coveralls fails?",
+      negatable: false,
+      abbr: "C")
+  ..addFlag("throw-on-error", help: "Should this throw if "
+      "an error in the dart_coveralls implementation happens?",
+      negatable: false,
+      abbr: "E")
+  ..addFlag("exclude-test-files",
+      abbr: "T",
+      help: "Should test files be included in the coveralls report?",
+      negatable: false)
+  ..addFlag("print-json",
+      abbr: 'p',
+      help: "Pretty-print the json that will be sent to coveralls.",
+      negatable: false);

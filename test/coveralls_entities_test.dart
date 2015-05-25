@@ -84,9 +84,6 @@ void main() {
     test("getPackageName", () {
       var fileSystem = new FileSystemMock();
       var fileMock = new FileMock();
-      var dirMock = new DirectoryMock();
-
-      dirMock.when(callsTo("get path")).thenReturn(".");
       fileMock
           .when(callsTo("readAsStringSync"))
           .thenReturn("name: dart_coveralls");
@@ -94,13 +91,12 @@ void main() {
           .when(callsTo("getFile", "./pubspec.yaml"))
           .thenReturn(fileMock);
 
-      var name = PackageFilter.getPackageName(dirMock, fileSystem);
+      var name = PackageFilter.getPackageName('.', fileSystem);
       expect(name, equals("dart_coveralls"));
       fileSystem
           .getLogs(callsTo("getFile", "./pubspec.yaml"))
           .verify(happenedOnce);
       fileMock.getLogs(callsTo("readAsStringSync")).verify(happenedOnce);
-      dirMock.getLogs(callsTo("get path")).verify(happenedOnce);
     });
 
     test("accept", () {
@@ -149,8 +145,25 @@ void main() {
       var lineValue1 = LineValue.parse(str);
       var lineValue2 = new LineValue.noCount(10);
 
-      expect(lineValue1.covString(), equals("0"));
-      expect(lineValue2.covString(), equals("null"));
+      expect(lineValue1.lineCount, equals(0));
+      expect(lineValue2.lineCount, isNull);
+    });
+  });
+
+  group('SourceFileReport', () {
+    test('toJson', () {
+      var file = new SourceFile('a', 'b');
+
+      var str = "DA:3,3\nDA:4,5\nDA:6,3";
+      var coverage = Coverage.parse(str);
+
+      var report = new SourceFileReport(file, coverage);
+
+      expect(report.toJson(), equals({
+        'name': 'a',
+        'source': 'b',
+        "coverage": [null, null, 3, 5, null, 3]
+      }));
     });
   });
 
@@ -166,14 +179,6 @@ void main() {
       _expectLineValue(values[4], 5, null);
       _expectLineValue(values[5], 6, 3);
     });
-
-    test("covString", () {
-      var str = "DA:3,3\nDA:4,5\nDA:6,3";
-      var coverage = Coverage.parse(str);
-
-      expect(coverage.covString(),
-          equals("\"coverage\": [null, null, 3, 5, null, 3]"));
-    });
   });
 
   group("SourceFile", () {
@@ -181,13 +186,12 @@ void main() {
       test("existing File", () {
         var fileMock = new FileMock();
         var fileSystem = new FileSystemMock();
-        var dirMock = new DirectoryMock();
 
         fileMock.when(callsTo("existsSync")).thenReturn(true);
         fileMock.when(callsTo("get absolute")).thenReturn(fileMock);
         fileSystem.when(callsTo("getFile", "test.file")).thenReturn(fileMock);
-        var file = SourceFile.getSourceFile("test.file", dirMock,
-            fileSystem: fileSystem);
+        var file =
+            SourceFile.getSourceFile("test.file", '.', fileSystem: fileSystem);
 
         expect(identical(fileMock, file), isTrue);
       });
@@ -214,32 +218,11 @@ void main() {
             .thenReturn(resolvedFile);
         resolvedFile.when(callsTo("get absolute")).thenReturn(resolvedFile);
 
-        var file = SourceFile.getSourceFile("dart_coveralls/test.file", dirMock,
+        var file = SourceFile.getSourceFile("dart_coveralls/test.file", '.',
             fileSystem: fileSystem);
 
         expect(identical(file, resolvedFile), isTrue);
       });
-    });
-  });
-
-  group("CoverallsReport", () {
-    test("covString", () {
-      var sourceFileReports = new SourceFilesReportsMock();
-      sourceFileReports
-          .when(callsTo("covString"))
-          .thenReturn("{sourceFileCovString}");
-      var gitDataMock = new GitDataMock();
-      gitDataMock.when(callsTo("covString")).thenReturn("{gitDataCovString}");
-
-      var report =
-          new CoverallsReport("token", sourceFileReports, gitDataMock, "local");
-
-      var covString = report.covString();
-
-      expect(covString, equals(
-          '{"repo_token": "token", {sourceFileCovString}, ' +
-              '"git": {gitDataCovString}, ' +
-              '"service_name": "local"}'));
     });
   });
 }

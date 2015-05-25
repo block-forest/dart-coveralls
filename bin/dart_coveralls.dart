@@ -1,3 +1,7 @@
+import 'dart:io';
+
+import 'package:stack_trace/stack_trace.dart';
+
 import "src/command_line.dart";
 import "src/calc.dart";
 import "src/report.dart";
@@ -11,5 +15,13 @@ void main(List<String> args) {
             "it in a file");
   var hub = builder.build();
 
-  hub.parseAndExecute(args);
+  Chain.capture(() async {
+    await hub.parseAndExecute(args);
+  }, onError: (error, chain) {
+    print(error);
+    print(chain.terse);
+    // See http://www.retro11.de/ouxr/211bsd/usr/include/sysexits.h.html
+    // EX_SOFTWARE
+    exitCode = 70;
+  });
 }

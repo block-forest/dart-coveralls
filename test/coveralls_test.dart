@@ -21,32 +21,20 @@ void main() {
     });
   });
 
-  group("GitCommitter", () {
-    test("covString", () {
-      var committer = new GitCommitter("Adracus", "adracus@gmail.com");
-
-      expect(committer.covString(), equals('"committer_name": "Adracus", ' +
-          '"committer_email": "adracus@gmail.com"'));
-    });
-  });
-
-  group("GitAuthor", () {
-    test("covString", () {
-      var author = new GitAuthor("Adracus", "adracus@gmail.com");
-
-      expect(author.covString(), equals('"author_name": "Adracus", ' +
-          '"author_email": "adracus@gmail.com"'));
-    });
-  });
-
   group("GitCommit", () {
     test("covString", () {
       var committer = new GitCommitter("NotAdracus", "notadracus@gmail.com");
       var author = new GitAuthor("Adracus", "adracus@gmail.com");
       var commit = new GitCommit("id", author, committer, "message");
 
-      expect(commit.covString(), '{"id": "id", ${author.covString()}, ' +
-          '${committer.covString()}, "message": "message"}');
+      expect(commit.toJson(), {
+        'id': 'id',
+        'message': 'message',
+        'committer_name': 'NotAdracus',
+        'committer_email': 'notadracus@gmail.com',
+        'author_name': 'Adracus',
+        'author_email': 'adracus@gmail.com'
+      });
     });
   });
 
@@ -88,9 +76,9 @@ void main() {
 
     test("covString", () {
       var remote = new GitRemote("test", "git@github.com");
-      var covString = remote.covString();
 
-      expect(covString, equals('{"name": "test", "url": "git@github.com"}'));
+      expect(
+          remote.toJson(), equals({"name": "test", "url": "git@github.com"}));
     });
   });
 

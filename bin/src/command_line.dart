@@ -1,5 +1,6 @@
 library cmdpart;
 
+import 'dart:async';
 import "dart:math" show max;
 
 import "package:args/args.dart";
@@ -7,11 +8,13 @@ import "package:args/args.dart";
 export "package:args/args.dart";
 
 abstract class CommandLinePart {
-  ArgParser get parser;
+  final ArgParser parser;
 
-  void parseAndExecute(List<String> args) => execute(parser.parse(args));
+  CommandLinePart(this.parser);
 
-  void execute(ArgResults res);
+  Future parseAndExecute(List<String> args) => execute(parser.parse(args));
+
+  Future execute(ArgResults res);
 }
 
 class CommandLineHubBuilder {
@@ -26,21 +29,24 @@ class CommandLineHubBuilder {
   CommandLineHub build() => new CommandLineHub._(_parts);
 }
 
-class CommandLineHub extends Object with CommandLinePart {
+class CommandLineHub extends CommandLinePart {
   final Map<PartInfo, CommandLinePart> _parts;
-  final ArgParser parser;
 
   CommandLineHub._(Map<PartInfo, CommandLinePart> parts)
       : _parts = parts,
-        parser = _initializeParser(parts);
+        super(_initializeParser(parts));
 
-  void execute(ArgResults results) {
-    if (results["help"]) return print(usage);
+  Future execute(ArgResults results) async {
+    if (results["help"]) {
+      print(usage);
+      return;
+    }
     if (null == results.command) {
-      return print(usage);
+      print(usage);
+      return;
     }
     var part = partByName(results.command.name);
-    part.execute(results.command);
+    await part.execute(results.command);
   }
 
   CommandLinePart partByName(String name) {
@@ -58,13 +64,6 @@ class CommandLineHub extends Object with CommandLinePart {
     int len = _getLongestNameLength();
     return "Possible commands are: \n\n" +
         _parts.keys.map((info) => info.toString(len)).join("\n");
-  }
-
-  static ArgParser _initializeParser(Map<PartInfo, CommandLinePart> parts) {
-    var parser = new ArgParser(allowTrailingOptions: false);
-    parts.forEach((info, part) => parser.addCommand(info.name, part.parser));
-    parser.addFlag("help", negatable: false);
-    return parser;
   }
 }
 
@@ -85,4 +84,11 @@ class PartInfo {
     if (null == nameLength) nameLength = name.length;
     return "  ${name.padRight(nameLength)}\t$description";
   }
+}
+
+ArgParser _initializeParser(Map<PartInfo, CommandLinePart> parts) {
+  var parser = new ArgParser(allowTrailingOptions: false);
+  parts.forEach((info, part) => parser.addCommand(info.name, part.parser));
+  parser.addFlag("help", negatable: false);
+  return parser;
 }

@@ -2,7 +2,7 @@ library dart_coveralls.coveralls_endpoint;
 
 import 'dart:async' show Future;
 
-import 'package:http/http.dart' show MultipartRequest, MultipartFile;
+import 'package:http/http.dart' show MultipartRequest, MultipartFile, Response;
 
 import 'log.dart';
 
@@ -16,29 +16,26 @@ class CoverallsEndpoint {
           ? coverallsAddress
           : Uri.parse(COVERALLS_ADDRESS);
 
-  MultipartRequest getCoverallsRequest(String json) {
+  MultipartRequest _getCoverallsRequest(String json) {
     var req = new MultipartRequest("POST", coverallsAddress);
     req.files.add(
         new MultipartFile.fromString("json_file", json, filename: "json_file"));
     return req;
   }
 
-  Future sendToCoveralls(String json) {
-    var req = getCoverallsRequest(json);
-    try {
-      return req.send().asStream().toList().then((responses) {
-        return responses.single.stream.toList().then((intValues) {
-          var msg = stringFromIntLines(intValues);
-          if (200 == responses.single.statusCode) return log.info("200 OK");
-          throw new Exception(responses.single.reasonPhrase + "\n$msg");
-        });
-      });
-    } catch (e) {
-      return new Future.error(e);
-    }
-  }
+  Future sendToCoveralls(String json) async {
+    var req = _getCoverallsRequest(json);
+    log.info('Sending coverage information. JSON length: ${json.length}');
+    var streamedResponse = await req.send();
+    Response response = await Response.fromStream(streamedResponse);
+    log.info('Coverage information sent.');
 
-  String stringFromIntLines(List<List<int>> lines) {
-    return lines.map((line) => new String.fromCharCodes(line)).join("\n");
+    var msg = response.body;
+
+    if (response.statusCode != 200) {
+      throw new Exception("${response.reasonPhrase}\n$msg");
+    }
+    log.info("200 OK");
+    log.info("Response:\n$msg");
   }
 }
