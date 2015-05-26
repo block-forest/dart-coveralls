@@ -12,6 +12,11 @@ class CalcPart extends CommandLinePart {
   CalcPart() : super(_initializeParser());
 
   Future execute(ArgResults res) async {
+    if (res["help"]) {
+      print(parser.usage);
+      return;
+    }
+
     String packageRoot = res["package-root"];
     if (p.isRelative(packageRoot)) {
       packageRoot = p.absolute(packageRoot);
