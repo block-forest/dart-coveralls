@@ -58,11 +58,11 @@ class ReportPart extends CommandLinePart {
     var excludeTestFiles = res["exclude-test-files"];
     var printJson = res["print-json"];
 
-    await Chain.capture(() async {
+    CoverallsResult result = await Chain.capture(() async {
       var commandLineClient =
           new CommandLineClient(packageRoot: pRoot.absolute.path, token: token);
 
-      await commandLineClient.reportToCoveralls(file.absolute.path,
+      return await commandLineClient.reportToCoveralls(file.absolute.path,
           workers: workers,
           dryRun: dryRun,
           retry: retry,
@@ -70,6 +70,10 @@ class ReportPart extends CommandLinePart {
           excludeTestFiles: excludeTestFiles,
           printJson: printJson);
     }, onError: errorFunction);
+
+    if (result != null) {
+      print("Coveralls ${result.message} – ${result.url}");
+    }
   }
 }
 

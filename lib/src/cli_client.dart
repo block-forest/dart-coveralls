@@ -53,7 +53,7 @@ class CommandLineClient {
     return environment['COVERALLS_TOKEN'];
   }
 
-  Future reportToCoveralls(String testFile, {int workers,
+  Future<CoverallsResult> reportToCoveralls(String testFile, {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress, bool dryRun: false,
       bool throwOnConnectivityError: false, int retry: 0,
@@ -76,13 +76,13 @@ class CommandLineClient {
       print(const JsonEncoder.withIndent('  ').convert(report));
     }
 
-    if (dryRun) return;
+    if (dryRun) return null;
 
     var endpoint = new CoverallsEndpoint(coverallsAddress);
 
     try {
       var encoded = JSON.encode(report);
-      await _sendLoop(endpoint, encoded, retry: retry);
+      return _sendLoop(endpoint, encoded, retry: retry);
     } catch (e, stack) {
       if (throwOnConnectivityError) rethrow;
       stderr.writeln('Error sending results');
@@ -106,13 +106,12 @@ String _calcPackageRoot(String packageDir, String packageRoot) {
   return p.normalize(packageRoot);
 }
 
-Future _sendLoop(CoverallsEndpoint endpoint, String covString,
+Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
     {int retry: 0}) async {
   var currentRetryCount = 0;
   while (true) {
     try {
-      await endpoint.sendToCoveralls(covString);
-      return;
+      return endpoint.sendToCoveralls(covString);
     } catch (e) {
       if (currentRetryCount >= retry) {
         rethrow;
