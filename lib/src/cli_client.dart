@@ -12,15 +12,14 @@ import 'coveralls_endpoint.dart';
 import 'coveralls_entities.dart';
 import 'log.dart';
 import 'process_system.dart';
+import 'services/travis.dart' as travis;
 
 class CommandLineClient {
   final String projectDirectory;
   final String packageRoot;
   final String token;
-  final String serviceName;
 
-  CommandLineClient._(
-      this.projectDirectory, this.packageRoot, this.token, this.serviceName);
+  CommandLineClient._(this.projectDirectory, this.packageRoot, this.token);
 
   factory CommandLineClient({String projectDirectory, String packageRoot,
       String token, Map<String, String> environment}) {
@@ -30,11 +29,9 @@ class CommandLineClient {
 
     packageRoot = _calcPackageRoot(projectDirectory, packageRoot);
 
-    var serviceName = getServiceName(environment);
     token = getToken(token, environment);
 
-    return new CommandLineClient._(
-        projectDirectory, packageRoot, token, serviceName);
+    return new CommandLineClient._(projectDirectory, packageRoot, token);
   }
 
   Future<CoverageResult<String>> getLcovResult(String testFile,
@@ -56,13 +53,6 @@ class CommandLineClient {
     return environment["REPO_TOKEN"];
   }
 
-  static String getServiceName([Map<String, String> environment]) {
-    if (null == environment) environment = Platform.environment;
-    var serviceName = environment["COVERALLS_SERVICE_NAME"];
-    if (serviceName == null) return "local";
-    return serviceName;
-  }
-
   Future reportToCoveralls(String testFile, {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress, bool dryRun: false,
@@ -73,16 +63,22 @@ class CommandLineClient {
 
     rawLcov.printSummary();
     var lcov = LcovDocument.parse(rawLcov.result.toString());
-    var report = CoverallsReport.parse(
-        token, lcov, projectDirectory, serviceName,
-        excludeTestFiles: excludeTestFiles);
-    var endpoint = new CoverallsEndpoint(coverallsAddress);
+
+    var serviceName = travis.getServiceName(Platform.environment);
+    var serviceJobId = travis.getServiceJobId(Platform.environment);
+
+    var report = CoverallsReport.parse(token, lcov, projectDirectory,
+        excludeTestFiles: excludeTestFiles,
+        serviceName: serviceName,
+        serviceJobId: serviceJobId);
 
     if (printJson) {
       print(const JsonEncoder.withIndent('  ').convert(report));
     }
 
     if (dryRun) return;
+
+    var endpoint = new CoverallsEndpoint(coverallsAddress);
 
     try {
       var encoded = JSON.encode(report);

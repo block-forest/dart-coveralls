@@ -83,15 +83,6 @@ void main() {
   });
 
   group("CommandLineClient", () {
-    test("getServiceName", () {
-      var s1 = CommandLineClient.getServiceName();
-      var s2 =
-          CommandLineClient.getServiceName({"COVERALLS_SERVICE_NAME": "name"});
-
-      expect(s1, equals("local"));
-      expect(s2, equals("name"));
-    });
-
     group("getToken", () {
       test("with candidate", () {
         var t1 = CommandLineClient.getToken("test");
