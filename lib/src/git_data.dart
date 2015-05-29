@@ -17,7 +17,7 @@ abstract class GitPerson {
         mail = getPersonMail(str);
 
   static String getPersonName(String str) {
-    if (-1 == str.indexOf("<")) return "Unknown";
+    if (!str.contains("<")) return "Unknown";
     return str.split("<")[0].trim();
   }
 
