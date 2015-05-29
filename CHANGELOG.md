@@ -1,3 +1,13 @@
+### 0.3.0
+
+* `serviceName` was removed from `CommandLineClient`.
+
+* `serviceName` and `serviceJobId` are now named paramaters on `CoverallsReport`
+  – constructor and `parse`.
+
+* `service_name` and `service_job_id` are correctly populated form Travis and
+  Coveralls.
+
 ### 0.2.0
 
 * A number of (breaking) changes to clarify and correctly distinguish between

@@ -237,25 +237,38 @@ class CoverallsReport {
   final GitData gitData;
   final SourceFileReports sourceFileReports;
   final String serviceName;
+  final String serviceJobId;
 
-  CoverallsReport(
-      this.repoToken, this.sourceFileReports, this.gitData, this.serviceName);
+  CoverallsReport(this.repoToken, this.sourceFileReports, this.gitData,
+      {this.serviceName, this.serviceJobId});
 
-  static CoverallsReport parse(String repoToken, LcovDocument lcov,
-      String projectDirectory, String serviceName,
-      {bool excludeTestFiles: false}) {
+  static CoverallsReport parse(
+      String repoToken, LcovDocument lcov, String projectDirectory,
+      {String serviceName, String serviceJobId, bool excludeTestFiles: false}) {
     var gitData = GitData.getGitData(new Directory(projectDirectory));
     var reports = SourceFileReports.parse(lcov, projectDirectory,
         excludeTestFiles: excludeTestFiles);
-    return new CoverallsReport(repoToken, reports, gitData, serviceName);
+    return new CoverallsReport(repoToken, reports, gitData,
+        serviceName: serviceName, serviceJobId: serviceJobId);
   }
 
-  Map toJson() => {
-    "repo_token": repoToken,
-    "git": gitData,
-    "service_name": serviceName,
-    "source_files": sourceFileReports.sourceFileReports.toList()
-  };
+  Map toJson() {
+    var data = <String, dynamic>{
+      "repo_token": repoToken,
+      "git": gitData,
+      "source_files": sourceFileReports.sourceFileReports.toList()
+    };
+
+    if (serviceName != null) {
+      data['service_name'] = serviceName;
+    }
+
+    if (serviceJobId != null) {
+      data['service_job_id'] = serviceJobId;
+    }
+
+    return data;
+  }
 }
 
 /// Yields the Dart files represented by [entity].
