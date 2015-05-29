@@ -119,9 +119,9 @@ class GitRemote {
 }
 
 class GitBranch {
-  String name;
-  String reference;
-  String id;
+  final String name;
+  final String reference;
+  final String id;
 
   GitBranch(this.name, this.reference, this.id);
 
