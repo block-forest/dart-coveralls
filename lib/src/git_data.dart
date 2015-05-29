@@ -3,6 +3,7 @@ library dart_coveralls.git_data;
 import 'dart:io' show Directory, ProcessException, Platform;
 
 import 'log.dart';
+import 'services/travis.dart' as travis;
 import 'process_system.dart';
 
 abstract class GitPerson {
@@ -129,8 +130,10 @@ class GitBranch {
       Map<String, String> environment}) {
     if (null == environment) environment = Platform.environment;
     if (null != environment["CI_BRANCH"]) return environment["CI_BRANCH"];
-    if (null != environment["TRAVIS_BRANCH"]) return environment[
-        "TRAVIS_BRANCH"];
+
+    var travisBranch = travis.getBranch(environment);
+    if (travisBranch != null) return travisBranch;
+
     var args = ["rev-parse", "--abbrev-ref", "HEAD"];
     var result =
         processSystem.runProcessSync("git", args, workingDirectory: dir.path);
