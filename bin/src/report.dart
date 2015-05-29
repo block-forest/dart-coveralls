@@ -27,20 +27,17 @@ class ReportPart extends CommandLinePart {
     }
 
     var pRoot = new Directory(res["package-root"]);
-    var file = new File(res.rest.single);
-    var dryRun = res["dry-run"];
-    var token = res["token"];
-    var workers = int.parse(res["workers"]);
-    var retry = int.parse(res["retry"]);
-    var throwOnError = res["throw-on-error"];
-    var throwOnConnectivityError = res["throw-on-connectivity-error"];
-    var excludeTestFiles = res["exclude-test-files"];
-    var printJson = res["print-json"];
-
     if (!pRoot.existsSync()) return print("Root directory does not exist");
     log.info(() => "Package root is ${pRoot.absolute.path}");
+
+    var file = new File(res.rest.single);
     if (!file.existsSync()) return print("Dart file does not exist");
     log.info(() => "Evaluated dart file is ${file.absolute.path}");
+
+    var dryRun = res["dry-run"];
+    var token = res["token"];
+    token = CommandLineClient.getToken(token, Platform.environment);
+
     if (token == null) {
       if (!dryRun) return print("Please specify a repo token");
       token = "test";
@@ -48,10 +45,18 @@ class ReportPart extends CommandLinePart {
     // We don't print out the token here as it could end up in public build logs.
     log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
 
+    var throwOnError = res["throw-on-error"];
+
     var errorFunction = (e, Chain chain) {
       log.severe('Exception', e, chain);
       if (throwOnError) throw e;
     };
+
+    var workers = int.parse(res["workers"]);
+    var retry = int.parse(res["retry"]);
+    var throwOnConnectivityError = res["throw-on-connectivity-error"];
+    var excludeTestFiles = res["exclude-test-files"];
+    var printJson = res["print-json"];
 
     await Chain.capture(() async {
       var commandLineClient =
@@ -71,7 +76,8 @@ class ReportPart extends CommandLinePart {
 ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
   ..addFlag("help", help: "Displays this help", negatable: false)
   ..addOption("token",
-      help: "Token for coveralls", defaultsTo: Platform.environment["test"])
+      help: "Token for coveralls. If not provided environment values REPO_TOKEN"
+      " and COVERALLS_TOKEN are used if they exist.")
   ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
   ..addOption("package-root",
       help: 'Where to find packages, that is, "package:..." imports.',

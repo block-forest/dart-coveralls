@@ -29,8 +29,6 @@ class CommandLineClient {
 
     packageRoot = _calcPackageRoot(projectDirectory, packageRoot);
 
-    token = getToken(token, environment);
-
     return new CommandLineClient._(projectDirectory, packageRoot, token);
   }
 
@@ -41,16 +39,18 @@ class CommandLineClient {
     return collector.getLcovInformation(workers: workers);
   }
 
-  /// Returns [candidate] if not null, otherwise environment's REPO_TOKEN
+  /// Returns [candidate] if not `null`, otherwise environment's `REPO_TOKEN` or
+  /// `COVERALLS_TOKEN` if one is set. Otherwise; `null`.
   ///
-  /// This first checks if the given candidate is null. If it is not null,
-  /// the candidate will be returned. Otherwise, it searches the given
-  /// environment for "REPO_TOKEN" and returns the content of it. If
-  /// the given environment is null, it will be [Platform].environment.
+  /// If [environment] is `null`, [Platform.environment] is used.
   static String getToken(String candidate, [Map<String, String> environment]) {
     if (candidate != null && candidate.isNotEmpty) return candidate;
     if (null == environment) environment = Platform.environment;
-    return environment["REPO_TOKEN"];
+
+    candidate = environment["REPO_TOKEN"];
+    if (candidate != null) return candidate;
+
+    return environment['COVERALLS_TOKEN'];
   }
 
   Future reportToCoveralls(String testFile, {int workers,

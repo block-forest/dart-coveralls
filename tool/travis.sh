@@ -11,7 +11,6 @@ dart --checked test/test_all.dart
 if [ "$COVERALLS_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "stable" ]; then
   echo "Running coverage..."
   dart bin/dart_coveralls.dart report \
-    --token $COVERALLS_TOKEN \
     --retry 2 \
     --exclude-test-files \
     --debug \
