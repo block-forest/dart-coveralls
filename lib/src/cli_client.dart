@@ -29,8 +29,6 @@ class CommandLineClient {
 
     packageRoot = _calcPackageRoot(projectDirectory, packageRoot);
 
-    token = getToken(token, environment);
-
     return new CommandLineClient._(projectDirectory, packageRoot, token);
   }
 
@@ -41,19 +39,21 @@ class CommandLineClient {
     return collector.getLcovInformation(workers: workers);
   }
 
-  /// Returns [candidate] if not null, otherwise environment's REPO_TOKEN
+  /// Returns [candidate] if not `null`, otherwise environment's `REPO_TOKEN` or
+  /// `COVERALLS_TOKEN` if one is set. Otherwise; `null`.
   ///
-  /// This first checks if the given candidate is null. If it is not null,
-  /// the candidate will be returned. Otherwise, it searches the given
-  /// environment for "REPO_TOKEN" and returns the content of it. If
-  /// the given environment is null, it will be [Platform].environment.
+  /// If [environment] is `null`, [Platform.environment] is used.
   static String getToken(String candidate, [Map<String, String> environment]) {
     if (candidate != null && candidate.isNotEmpty) return candidate;
     if (null == environment) environment = Platform.environment;
-    return environment["REPO_TOKEN"];
+
+    candidate = environment["REPO_TOKEN"];
+    if (candidate != null) return candidate;
+
+    return environment['COVERALLS_TOKEN'];
   }
 
-  Future reportToCoveralls(String testFile, {int workers,
+  Future<CoverallsResult> reportToCoveralls(String testFile, {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress, bool dryRun: false,
       bool throwOnConnectivityError: false, int retry: 0,
@@ -76,13 +76,13 @@ class CommandLineClient {
       print(const JsonEncoder.withIndent('  ').convert(report));
     }
 
-    if (dryRun) return;
+    if (dryRun) return null;
 
     var endpoint = new CoverallsEndpoint(coverallsAddress);
 
     try {
       var encoded = JSON.encode(report);
-      await _sendLoop(endpoint, encoded, retry: retry);
+      return _sendLoop(endpoint, encoded, retry: retry);
     } catch (e, stack) {
       if (throwOnConnectivityError) rethrow;
       stderr.writeln('Error sending results');
@@ -106,13 +106,12 @@ String _calcPackageRoot(String packageDir, String packageRoot) {
   return p.normalize(packageRoot);
 }
 
-Future _sendLoop(CoverallsEndpoint endpoint, String covString,
+Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
     {int retry: 0}) async {
   var currentRetryCount = 0;
   while (true) {
     try {
-      await endpoint.sendToCoveralls(covString);
-      return;
+      return endpoint.sendToCoveralls(covString);
     } catch (e) {
       if (currentRetryCount >= retry) {
         rethrow;

@@ -271,6 +271,17 @@ class CoverallsReport {
   }
 }
 
+/// Represents a successful coverage report to Coveralls.
+class CoverallsResult {
+  final String message;
+  final Uri url;
+
+  CoverallsResult(this.message, this.url);
+
+  factory CoverallsResult.fromJson(Map<String, dynamic> json) =>
+      new CoverallsResult(json['message'], Uri.parse(json['url']));
+}
+
 /// Yields the Dart files represented by [entity].
 ///
 /// If [entity] is a Dart [File], it is yielded.

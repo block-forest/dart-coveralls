@@ -8,6 +8,12 @@
 * `service_name` and `service_job_id` are correctly populated form Travis and
   Coveralls.
 
+* Can omit the `token` flag to `report` if one of `REPO_TOKEN` or 
+  `COVERALLS_TOKEN` is set as an environment variable.
+
+* The Coveralls job number and URL are printed after a successful report is 
+  posted to the service.
+
 ### 0.2.0
 
 * A number of (breaking) changes to clarify and correctly distinguish between

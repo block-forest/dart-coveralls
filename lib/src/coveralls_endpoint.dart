@@ -1,9 +1,11 @@
 library dart_coveralls.coveralls_endpoint;
 
 import 'dart:async' show Future;
+import 'dart:convert' show JSON;
 
 import 'package:http/http.dart' show MultipartRequest, MultipartFile, Response;
 
+import 'coveralls_entities.dart';
 import 'log.dart';
 
 class CoverallsEndpoint {
@@ -23,7 +25,7 @@ class CoverallsEndpoint {
     return req;
   }
 
-  Future sendToCoveralls(String json) async {
+  Future<CoverallsResult> sendToCoveralls(String json) async {
     var req = _getCoverallsRequest(json);
     log.info('Sending coverage information. JSON length: ${json.length}');
     var streamedResponse = await req.send();
@@ -37,5 +39,8 @@ class CoverallsEndpoint {
     }
     log.info("200 OK");
     log.info("Response:\n$msg");
+
+    var resultJson = JSON.decode(msg);
+    return new CoverallsResult.fromJson(resultJson);
   }
 }
