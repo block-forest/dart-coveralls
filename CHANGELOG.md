@@ -1,3 +1,11 @@
+### 0.4.0-dev
+
+* Add an upload-only option, which does not run any script
+
+* Removed `LcovCollector` ctor `testFile` argument.
+
+* `LcovCollect.getLcovInformation` added `testFile` argument.
+
 ### 0.3.0+1
 
 * Support the latest `coverage` `0.7.0` series releases.

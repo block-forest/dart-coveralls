@@ -7,7 +7,7 @@ Calculate coverage of your dart scripts, format it to LCOV and send it to
 
 ### Usage
 This package consists of a single command line tool `dart_coveralls` with
-the two commands `calc`, `report`.
+the three commands `calc`, `report`, `upload`.
 
 To activate the program for global use, run `pub global activate dart_coveralls`.
 
@@ -30,6 +30,32 @@ of the tool is as follows:
 
 ```
 dart_coveralls report <options> <test file>
+```
+
+* `--help` – Displays all options
+* `--token` –Token for coveralls
+* `--workers` – Number of workers for parsing
+  (defaults to "1")
+* `--package-root` Where to find packages, that is, "package:..." imports.
+  (defaults to "packages")
+* `--debug` Prints debug information
+* `--retry` Number of retries
+  (defaults to "10")
+* `--dry-run` If this flag is enabled, data won't be sent to coveralls
+* `-C, --throw-on-connectivity-error`
+  Should this throw an exception, if the upload to coveralls fails?
+* `-E, --throw-on-error`
+  Should this throw if an error in the dart_coveralls implementation happens?
+* `-T, --exclude-test-files`
+  Should test files be included in the coveralls report?
+* `-p, --print-json`
+  Pretty-print the json that will be sent to coveralls.
+
+#### The `upload` command
+This command uploads a coverage report.
+
+```
+dart_coveralls upload <options> <directory containing coverage reports from the VM>
 ```
 
 * `--help` – Displays all options

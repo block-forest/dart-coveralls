@@ -43,9 +43,9 @@ class CalcPart extends CommandLinePart {
     }
 
     var workers = int.parse(res["workers"]);
-    var collector = new LcovCollector(packageRoot, file);
+    var collector = new LcovCollector(packageRoot);
 
-    var r = await collector.getLcovInformation(workers: workers);
+    var r = await collector.getLcovInformation(file, workers: workers);
 
     r.printSummary();
     if (res["output"] != null) {

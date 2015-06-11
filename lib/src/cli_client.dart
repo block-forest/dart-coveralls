@@ -35,8 +35,8 @@ class CommandLineClient {
   Future<CoverageResult<String>> getLcovResult(String testFile,
       {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
     var collector =
-        new LcovCollector(packageRoot, testFile, processSystem: processSystem);
-    return collector.getLcovInformation(workers: workers);
+        new LcovCollector(packageRoot, processSystem: processSystem);
+    return collector.getLcovInformation(testFile, workers: workers);
   }
 
   /// Returns [candidate] if not `null`, otherwise environment's `REPO_TOKEN` or
@@ -62,7 +62,46 @@ class CommandLineClient {
         workers: workers, processSystem: processSystem);
 
     rawLcov.printSummary();
-    var lcov = LcovDocument.parse(rawLcov.result.toString());
+
+    return uploadToCoveralls(rawLcov,
+        workers: workers,
+        processSystem: processSystem,
+        coverallsAddress: coverallsAddress,
+        dryRun: dryRun,
+        throwOnConnectivityError: throwOnConnectivityError,
+        retry: retry,
+        excludeTestFiles: excludeTestFiles,
+        printJson: printJson);
+  }
+
+  Future<CoverallsResult> convertAndUploadToCoveralls(
+      Directory containsVmReports, {int workers,
+      ProcessSystem processSystem: const ProcessSystem(),
+      String coverallsAddress, bool dryRun: false,
+      bool throwOnConnectivityError: false, int retry: 0,
+      bool excludeTestFiles: false, bool printJson}) async {
+    var collector =
+        new LcovCollector(packageRoot, processSystem: processSystem);
+
+    var result = await collector.convertVmReportsToLcov(containsVmReports,
+        workers: workers);
+
+    return uploadToCoveralls(result,
+        workers: workers,
+        processSystem: processSystem,
+        dryRun: dryRun,
+        throwOnConnectivityError: throwOnConnectivityError,
+        retry: retry,
+        excludeTestFiles: excludeTestFiles,
+        printJson: printJson);
+  }
+
+  Future<CoverallsResult> uploadToCoveralls(CoverageResult coverageResult,
+      {int workers, ProcessSystem processSystem: const ProcessSystem(),
+      String coverallsAddress, bool dryRun: false,
+      bool throwOnConnectivityError: false, int retry: 0,
+      bool excludeTestFiles: false, bool printJson}) async {
+    var lcov = LcovDocument.parse(coverageResult.result.toString());
 
     var serviceName = travis.getServiceName(Platform.environment);
     var serviceJobId = travis.getServiceJobId(Platform.environment);

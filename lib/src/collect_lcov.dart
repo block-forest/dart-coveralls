@@ -50,16 +50,24 @@ class LcovPart {
 
 class LcovCollector {
   final String sdkRoot;
-  final String testFile;
   final String packageRoot;
   final ProcessSystem processSystem;
 
-  LcovCollector(this.packageRoot, this.testFile,
-      {this.processSystem: const ProcessSystem(), this.sdkRoot}) {
-    if (!p.isAbsolute(testFile)) {
-      throw new ArgumentError.value(
-          testFile, 'testFile', 'Must be an absolute path.');
-    }
+  LcovCollector(this.packageRoot,
+      {this.processSystem: const ProcessSystem(), this.sdkRoot}) {}
+
+  Future<CoverageResult<String>> convertVmReportsToLcov(
+      Directory directoryContainingVmReports, {int workers: 1}) async {
+    var reportFiles = await directoryContainingVmReports
+        .list(recursive: false, followLinks: false)
+        .toList();
+
+    var hitmap = await parseCoverage(reportFiles, workers);
+    var resolver = new Resolver(packageRoot: packageRoot, sdkRoot: sdkRoot);
+    var formatter = new LcovFormatter(resolver);
+
+    var res = await formatter.format(hitmap);
+    return new CoverageResult<String>(res, null);
   }
 
   // TODO: perhaps provide an option to NOT delete the temp file and instead
@@ -68,11 +76,17 @@ class LcovCollector {
   ///
   /// Calculates and returns LCOV information of the tested [File].
   /// This uses [workers] to parse the collected information.
-  Future<CoverageResult<String>> getLcovInformation({int workers: 1}) async {
+  Future<CoverageResult<String>> getLcovInformation(String testFile,
+      {int workers: 1}) async {
+    if (!p.isAbsolute(testFile)) {
+      throw new ArgumentError.value(
+          testFile, 'testFile', 'Must be an absolute path.');
+    }
+
     Directory tempDir =
         await Directory.systemTemp.createTemp('dart_coveralls.');
     try {
-      var reportFile = await _getCoverageJson(tempDir);
+      var reportFile = await _getCoverageJson(testFile, tempDir);
 
       var hitmap = await parseCoverage(reportFile.result, workers);
       var resolver = new Resolver(packageRoot: packageRoot, sdkRoot: sdkRoot);
@@ -87,7 +101,7 @@ class LcovCollector {
 
   /// Generates and returns a coverage json file
   Future<CoverageResult<List<File>>> _getCoverageJson(
-      Directory coverageDir) async {
+      String testFile, Directory coverageDir) async {
     var args = [
       "--coverage_dir=${coverageDir.path}",
       "--package-root=${packageRoot}",

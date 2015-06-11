@@ -5,6 +5,7 @@ import 'package:stack_trace/stack_trace.dart';
 import "src/command_line.dart";
 import "src/calc.dart";
 import "src/report.dart";
+import "src/upload.dart";
 
 void main(List<String> args) {
   var builder = new CommandLineHubBuilder()
@@ -12,7 +13,8 @@ void main(List<String> args) {
         description: "Calculate and report coverage data to coveralls")
     ..addPart("calc", new CalcPart(),
         description: "Calculate coveralls data and output it or store " +
-            "it in a file");
+            "it in a file")
+    ..addPart("upload", new UploadPart(), description: "Upload a report");
   var hub = builder.build();
 
   Chain.capture(() async {
