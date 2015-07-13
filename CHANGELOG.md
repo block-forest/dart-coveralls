@@ -1,4 +1,4 @@
-### 0.4.0-dev
+### 0.4.0
 
 * Add an upload-only option, which does not run any script
 
