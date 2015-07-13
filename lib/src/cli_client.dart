@@ -150,7 +150,8 @@ Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
   var currentRetryCount = 0;
   while (true) {
     try {
-      return endpoint.sendToCoveralls(covString);
+      var result = await endpoint.sendToCoveralls(covString);
+      return result;
     } catch (e) {
       if (currentRetryCount >= retry) {
         rethrow;
