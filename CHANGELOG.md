@@ -6,6 +6,8 @@
 
 * `LcovCollect.getLcovInformation` added `testFile` argument.
 
+* Added `--log-level` option to the report sub command.
+
 ### 0.3.0+1
 
 * Support the latest `coverage` `0.7.0` series releases.

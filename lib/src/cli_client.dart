@@ -158,7 +158,7 @@ Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
       }
       currentRetryCount++;
       log.warning('Error sending', e);
-      log.info("Retrying $currentRetryCount of $retry.");
+      log.warning("Retrying $currentRetryCount of $retry.");
     }
   }
 }
