@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:io';
 
 import 'package:dart_coveralls/dart_coveralls.dart';
+import 'package:logging/logging.dart';
 import 'package:stack_trace/stack_trace.dart';
 
 import "command_line.dart";
@@ -13,9 +14,22 @@ class ReportPart extends CommandLinePart {
 
   Future execute(ArgResults res) async {
     if (res["help"]) return print(parser.usage);
-    if (res.rest.length != 1) return print("Please specify a test file to run");
-    if (res["debug"]) {
-      log.onRecord.listen((rec) {
+
+    var logLevelStr = res['log-level'];
+
+    Level logLevel = Level.LEVELS
+        .firstWhere((level) => level.name.toLowerCase() == logLevelStr);
+
+    if (res['debug']) {
+      if (logLevel == Level.OFF) {
+        logLevel = Level.ALL;
+      } else {
+        return print("Cannot set both `--log-level` and `--debug`.");
+      }
+    }
+
+    if (logLevel != Level.OFF) {
+      log.onRecord.where((rec) => rec.level >= logLevel).listen((rec) {
         print(rec.message);
         if (rec.error != null) {
           print(rec.error);
@@ -25,6 +39,8 @@ class ReportPart extends CommandLinePart {
         }
       });
     }
+
+    if (res.rest.length != 1) return print("Please specify a test file to run");
 
     var pRoot = new Directory(res["package-root"]);
     if (!pRoot.existsSync()) return print("Root directory does not exist");
@@ -77,6 +93,9 @@ class ReportPart extends CommandLinePart {
   }
 }
 
+Iterable<String> get _logLevelOptions =>
+    Level.LEVELS.map((l) => l.name.toLowerCase()).toList();
+
 ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
   ..addFlag("help", help: "Displays this help", negatable: false)
   ..addOption("token",
@@ -86,7 +105,13 @@ ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
   ..addOption("package-root",
       help: 'Where to find packages, that is, "package:..." imports.',
       defaultsTo: "packages")
-  ..addFlag("debug", help: "Prints debug information", negatable: false)
+  ..addFlag("debug",
+      help: "Prints all log information. Equivalent to `--log-level all`",
+      negatable: false)
+  ..addOption('log-level',
+      help: 'The level at which logs are printed.',
+      allowed: _logLevelOptions,
+      defaultsTo: 'off')
   ..addOption("retry", help: "Number of retries", defaultsTo: "10")
   ..addFlag("dry-run",
       help: "If this flag is enabled, data won't be sent to coveralls",

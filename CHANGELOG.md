@@ -1,10 +1,12 @@
-### 0.4.0-dev
+### 0.4.0
 
 * Add an upload-only option, which does not run any script
 
 * Removed `LcovCollector` ctor `testFile` argument.
 
 * `LcovCollect.getLcovInformation` added `testFile` argument.
+
+* Added `--log-level` option to the report sub command.
 
 ### 0.3.0+1
 
