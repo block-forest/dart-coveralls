@@ -60,6 +60,9 @@ ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
   ..addFlag("help", help: "Prints this help", negatable: false)
   ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
   ..addOption("output", help: "Output file path")
+  ..addOption("packages",
+      help: 'Where to find the packages file, that is, "package:..." imports.',
+      defaultsTo: ".packages")
   ..addOption("package-root",
-      help: 'Where to find packages, that is, "package:..." imports.',
-      defaultsTo: "packages");
+      help: 'Ignored/Deprecated. Package directories are no longer supported.',
+      defaultsTo: ".packages");

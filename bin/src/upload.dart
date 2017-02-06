@@ -27,7 +27,7 @@ class UploadPart extends CommandLinePart {
       });
     }
 
-    var pRoot = new Directory(res["package-root"]);
+    var pRoot = new File(res["packages"]);
     var directory = new Directory(res.rest.single);
     var dryRun = res["dry-run"];
     var token = res["token"];
@@ -39,8 +39,8 @@ class UploadPart extends CommandLinePart {
     var printJson = res["print-json"];
 
     if (!pRoot
-        .existsSync()) return print("Package root directory does not exist");
-    log.info(() => "Package root is ${pRoot.absolute.path}");
+        .existsSync()) return print("Packages file does not exist");
+    log.info(() => "Packages file is ${pRoot.absolute.path}");
     if (!directory.existsSync()) return print(
         "Directory containing VM coverage files does not exist");
     log.info(() =>
@@ -77,9 +77,12 @@ ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
   ..addOption("token",
       help: "Token for coveralls", defaultsTo: Platform.environment["test"])
   ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+  ..addOption("packages",
+      help: 'Where to find the packages file, that is, "package:..." imports.',
+      defaultsTo: ".packages")
   ..addOption("package-root",
-      help: 'Where to find packages, that is, "package:..." imports.',
-      defaultsTo: "packages")
+      help: 'Ignored/Deprecated. Package directories are no longer supported.',
+      defaultsTo: ".packages")
   ..addFlag("debug", help: "Prints debug information", negatable: false)
   ..addOption("retry", help: "Number of retries", defaultsTo: "10")
   ..addFlag("dry-run",

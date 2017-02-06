@@ -24,8 +24,10 @@ dart_coveralls calc [--workers, --output, --package-root] test.dart
 
 * `--workers`: The number of workers used to parse LCOV information
 * `--output`: The output file path, if not given stdout
-* `--package-root`: Where to find packages, that is, "package:..." imports.
-  (defaults to "packages")
+* `--packages`: Where to find the packages file, that is, "package:..." imports.
+  (defaults to ".packages")
+* `--package-root`: Ignored/Deprecated. Package directories are no longer supported.
+  (defaults to ".packages")
 * `test.dart`: The path of the test file on which coverage will be collected
 
 #### The `report` command
@@ -40,8 +42,10 @@ dart_coveralls report <options> <test file>
 * `--token` –Token for coveralls
 * `--workers` – Number of workers for parsing
   (defaults to "1")
-* `--package-root` Where to find packages, that is, "package:..." imports.
-  (defaults to "packages")
+* `--packages`: Where to find the packages file, that is, "package:..." imports.
+  (defaults to ".packages")
+* `--package-root`: Ignored/Deprecated. Package directories are no longer supported.
+  (defaults to ".packages")
 * `--debug` Prints debug information
 * `--retry` Number of retries
   (defaults to "10")
@@ -66,8 +70,10 @@ dart_coveralls upload <options> <directory containing coverage reports from the 
 * `--token` –Token for coveralls
 * `--workers` – Number of workers for parsing
   (defaults to "1")
-* `--package-root` Where to find packages, that is, "package:..." imports.
-  (defaults to "packages")
+* `--packages`: Where to find the packages file, that is, "package:..." imports.
+  (defaults to ".packages")
+* `--package-root`: Ignored/Deprecated. Package directories are no longer supported.
+  (defaults to ".packages")
 * `--debug` Prints debug information
 * `--retry` Number of retries
   (defaults to "10")

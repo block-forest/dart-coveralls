@@ -1,3 +1,8 @@
+### 0.5.0
+
+* Support the latest `coverage` `0.9.0` series releases, dropping
+  support for `packages` directories, replaced by the `.packages`file.
+
 ### 0.4.0
 
 * Add an upload-only option, which does not run any script

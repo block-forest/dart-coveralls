@@ -19,6 +19,7 @@ void main(List<String> args) {
 
   Chain.capture(() async {
     await hub.parseAndExecute(args);
+    exit(0);
   }, onError: (error, chain) {
     print(error);
     print(chain.terse);

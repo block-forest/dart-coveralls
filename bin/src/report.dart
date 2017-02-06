@@ -42,9 +42,9 @@ class ReportPart extends CommandLinePart {
 
     if (res.rest.length != 1) return print("Please specify a test file to run");
 
-    var pRoot = new Directory(res["package-root"]);
-    if (!pRoot.existsSync()) return print("Root directory does not exist");
-    log.info(() => "Package root is ${pRoot.absolute.path}");
+    FileSystemEntity pRoot = new File(res["packages"]);
+    if (!pRoot.existsSync()) return print("Packages file does not exist");
+    log.info(() => "Packages file is ${pRoot.absolute.path}");
 
     var file = new File(res.rest.single);
     if (!file.existsSync()) return print("Dart file does not exist");
@@ -102,9 +102,12 @@ ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
       help: "Token for coveralls. If not provided environment values REPO_TOKEN"
       " and COVERALLS_TOKEN are used if they exist.")
   ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+  ..addOption("packages",
+      help: 'Where to find the packages file, that is, "package:..." imports.',
+      defaultsTo: ".packages")
   ..addOption("package-root",
-      help: 'Where to find packages, that is, "package:..." imports.',
-      defaultsTo: "packages")
+      help: 'Ignored/Deprecated. Package directories are no longer supported.',
+      defaultsTo: ".packages")
   ..addFlag("debug",
       help: "Prints all log information. Equivalent to `--log-level all`",
       negatable: false)

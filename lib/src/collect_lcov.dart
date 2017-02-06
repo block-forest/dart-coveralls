@@ -62,7 +62,7 @@ class LcovCollector {
         .list(recursive: false, followLinks: false)
         .toList();
 
-    var hitmap = await parseCoverage(reportFiles, workers);
+    var hitmap = await parseCoverage(reportFiles as Iterable<File>, workers);
     var resolver = new Resolver(packageRoot: packageRoot, sdkRoot: sdkRoot);
     var formatter = new LcovFormatter(resolver);
 
@@ -102,12 +102,43 @@ class LcovCollector {
   /// Generates and returns a coverage json file
   Future<CoverageResult<List<File>>> _getCoverageJson(
       String testFile, Directory coverageDir) async {
-    var args = [
-      "--coverage_dir=${coverageDir.path}",
-      "--package-root=${packageRoot}",
+
+    String observatoryPort = "8181";
+
+    var dartArgs = [
+      "--pause-isolates-on-exit",
+      "--enable-vm-service=${observatoryPort}",
       testFile
     ];
-    var result = await processSystem.runProcess(Platform.executable, args);
+
+    processSystem.runProcess(Platform.executable, dartArgs).then((result){
+      if (result.exitCode < 0) {
+        stderr.writeln('stdout:');
+        stderr.writeln(result.stdout);
+        stderr.writeln('stderr:');
+        stderr.writeln(result.stderr);
+        throw new ProcessException(Platform.executable, dartArgs,
+            'There was a critical error. Exit code: ${result.exitCode}',
+            result.exitCode);
+      }
+    });
+
+    var cvArgs = [
+      "global",
+      "activate",
+      "coverage"
+    ];
+    await processSystem.runProcess('pub', cvArgs);
+
+    var args = [
+      "global",
+      "run",
+      "coverage:collect_coverage",
+      "--uri=http://localhost:${observatoryPort}",
+      "-o${coverageDir.path}/coverage.json",
+      "--resume-isolates"
+    ];
+    var result = await processSystem.runProcess('pub', args);
     if (result.exitCode < 0) {
       stderr.writeln('stdout:');
       stderr.writeln(result.stdout);
