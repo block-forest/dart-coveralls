@@ -1,6 +1,6 @@
 library dart_coveralls.test.collect_lcov;
 
-import 'dart:io' show Directory, File, Platform;
+import 'dart:io' show File;
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -23,8 +23,9 @@ void main() {
           equals("SF:string_scanner/src/utils.dart"));
       expect(document.parts.last.fileName,
           equals("string_scanner/src/utils.dart"));
-      expect(document.parts.last.content, equals(
-          "DA:10,0\nDA:14,0\nDA:15,0\nDA:16,0" +
+      expect(
+          document.parts.last.content,
+          equals("DA:10,0\nDA:14,0\nDA:15,0\nDA:16,0" +
               "\nDA:17,0\nDA:22,0\nDA:23,0\nDA:26,0\nDA:27,0"));
     });
   });

@@ -7,26 +7,16 @@ import 'package:dart_coveralls/dart_coveralls.dart';
 import 'package:mock/mock.dart';
 
 @proxy
-class FileSystemMock extends Mock implements FileSystem {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class FileSystemMock extends Mock implements FileSystem {}
 
 @proxy
-class FileMock extends Mock implements File {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class FileMock extends Mock implements File {}
 
 @proxy
-class DirectoryMock extends Mock implements Directory {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class DirectoryMock extends Mock implements Directory {}
 
 @proxy
-class ProcessResultMock extends Mock implements ProcessResult {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class ProcessResultMock extends Mock implements ProcessResult {}
 
 @proxy
-class ProcessSystemMock extends Mock implements ProcessSystem {
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
+class ProcessSystemMock extends Mock implements ProcessSystem {}

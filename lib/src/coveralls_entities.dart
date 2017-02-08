@@ -1,6 +1,6 @@
 library dart_coveralls.coveralls_entities;
 
-import 'dart:io' show Directory, File, Platform, FileSystemEntity, Link;
+import 'dart:io' show Directory, File, FileSystemEntity;
 
 import 'package:mockable_filesystem/filesystem.dart';
 import 'package:path/path.dart' as p;
@@ -114,10 +114,10 @@ class SourceFileReport {
   }
 
   Map toJson() => {
-    "name": sourceFile.name,
-    "source": sourceFile.source,
-    "coverage": coverage.values.map((lv) => lv.lineCount).toList()
-  };
+        "name": sourceFile.name,
+        "source": sourceFile.source,
+        "coverage": coverage.values.map((lv) => lv.lineCount).toList()
+      };
 }
 
 class SourceFile {
@@ -172,13 +172,14 @@ class Coverage {
   static Coverage parse(String lcovContent) {
     var numeration =
         lcovContent.split("\n").where((str) => str.isNotEmpty).toList();
-    var values = [];
+    List<LineValue> values = [];
     var current = 1;
     for (int i = 0; i < numeration.length; i++) {
       var lineValue = LineValue.parse(numeration[i]);
       int distance = lineValue.lineNumber - values.length - 1;
-      if (distance > 0) values.addAll(
-          new List.generate(distance, (_) => new LineValue.noCount(current++)));
+      if (distance > 0)
+        values.addAll(new List.generate(
+            distance, (_) => new LineValue.noCount(current++)));
       values.add(lineValue);
       current++;
     }

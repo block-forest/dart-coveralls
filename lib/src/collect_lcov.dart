@@ -57,9 +57,11 @@ class LcovCollector {
       {this.processSystem: const ProcessSystem(), this.sdkRoot}) {}
 
   Future<CoverageResult<String>> convertVmReportsToLcov(
-      Directory directoryContainingVmReports, {int workers: 1}) async {
-    var reportFiles = await directoryContainingVmReports
+      Directory directoryContainingVmReports,
+      {int workers: 1}) async {
+    List<File> reportFiles = await directoryContainingVmReports
         .list(recursive: false, followLinks: false)
+        .where((FileSystemEntity f) => f is File)
         .toList();
 
     var hitmap = await parseCoverage(reportFiles, workers);
@@ -113,7 +115,9 @@ class LcovCollector {
       stderr.writeln(result.stdout);
       stderr.writeln('stderr:');
       stderr.writeln(result.stderr);
-      throw new ProcessException(Platform.executable, args,
+      throw new ProcessException(
+          Platform.executable,
+          args,
           'There was a critical error. Exit code: ${result.exitCode}',
           result.exitCode);
     }

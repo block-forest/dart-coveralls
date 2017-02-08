@@ -1,6 +1,6 @@
 library dart_coveralls.cli_client;
 
-import 'dart:async' show Future, Completer;
+import 'dart:async' show Future;
 import 'dart:convert';
 import 'dart:io';
 
@@ -21,8 +21,11 @@ class CommandLineClient {
 
   CommandLineClient._(this.projectDirectory, this.packageRoot, this.token);
 
-  factory CommandLineClient({String projectDirectory, String packageRoot,
-      String token, Map<String, String> environment}) {
+  factory CommandLineClient(
+      {String projectDirectory,
+      String packageRoot,
+      String token,
+      Map<String, String> environment}) {
     if (projectDirectory == null) {
       projectDirectory = p.current;
     }
@@ -53,11 +56,15 @@ class CommandLineClient {
     return environment['COVERALLS_TOKEN'];
   }
 
-  Future<CoverallsResult> reportToCoveralls(String testFile, {int workers,
+  Future<CoverallsResult> reportToCoveralls(String testFile,
+      {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
-      String coverallsAddress, bool dryRun: false,
-      bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false, bool printJson}) async {
+      String coverallsAddress,
+      bool dryRun: false,
+      bool throwOnConnectivityError: false,
+      int retry: 0,
+      bool excludeTestFiles: false,
+      bool printJson}) async {
     var rawLcov = await getLcovResult(testFile,
         workers: workers, processSystem: processSystem);
 
@@ -75,11 +82,15 @@ class CommandLineClient {
   }
 
   Future<CoverallsResult> convertAndUploadToCoveralls(
-      Directory containsVmReports, {int workers,
+      Directory containsVmReports,
+      {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
-      String coverallsAddress, bool dryRun: false,
-      bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false, bool printJson}) async {
+      String coverallsAddress,
+      bool dryRun: false,
+      bool throwOnConnectivityError: false,
+      int retry: 0,
+      bool excludeTestFiles: false,
+      bool printJson}) async {
     var collector =
         new LcovCollector(packageRoot, processSystem: processSystem);
 
@@ -97,10 +108,14 @@ class CommandLineClient {
   }
 
   Future<CoverallsResult> uploadToCoveralls(CoverageResult coverageResult,
-      {int workers, ProcessSystem processSystem: const ProcessSystem(),
-      String coverallsAddress, bool dryRun: false,
-      bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false, bool printJson}) async {
+      {int workers,
+      ProcessSystem processSystem: const ProcessSystem(),
+      String coverallsAddress,
+      bool dryRun: false,
+      bool throwOnConnectivityError: false,
+      int retry: 0,
+      bool excludeTestFiles: false,
+      bool printJson}) async {
     var lcov = LcovDocument.parse(coverageResult.result.toString());
 
     var serviceName = travis.getServiceName(Platform.environment);
@@ -127,6 +142,7 @@ class CommandLineClient {
       stderr.writeln('Error sending results');
       stderr.writeln(e);
       stderr.writeln(new Chain.forTrace(stack).terse);
+      return null;
     }
   }
 }
