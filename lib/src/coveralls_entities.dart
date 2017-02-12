@@ -1,6 +1,6 @@
 library dart_coveralls.coveralls_entities;
 
-import 'dart:io' show Directory, File, Platform, FileSystemEntity, Link;
+import 'dart:io' show Directory, File, FileSystemEntity;
 
 import 'package:mockable_filesystem/filesystem.dart';
 import 'package:path/path.dart' as p;

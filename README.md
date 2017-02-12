@@ -20,14 +20,16 @@ This command calculates the coverage of a given package. Use the tool like this:
 
 ```
 dart_coveralls calc [--workers, --output, --package-root] test.dart
+# or
+dart_coveralls calc [--workers, --output, --packages] test.dart
 ```
 
 * `--workers`: The number of workers used to parse LCOV information
 * `--output`: The output file path, if not given stdout
-* `--packages`: Where to find the packages file, that is, "package:..." imports.
-  (defaults to ".packages")
-* `--package-root`: Ignored/Deprecated. Package directories are no longer supported.
-  (defaults to ".packages")
+* `--packages`: Specifies the path to the package resolution configuration file. 
+   This option cannot be used with --package-root. Defaults to ".packages".
+* `--package-root`: Specifies where to find imported libraries. 
+   This option cannot be used with --packages. Defaults to null.
 * `test.dart`: The path of the test file on which coverage will be collected
 
 #### The `report` command
@@ -42,10 +44,10 @@ dart_coveralls report <options> <test file>
 * `--token` –Token for coveralls
 * `--workers` – Number of workers for parsing
   (defaults to "1")
-* `--packages`: Where to find the packages file, that is, "package:..." imports.
-  (defaults to ".packages")
-* `--package-root`: Ignored/Deprecated. Package directories are no longer supported.
-  (defaults to ".packages")
+* `--packages`: Specifies the path to the package resolution configuration file. 
+   This option cannot be used with --package-root. Defaults to ".packages".
+* `--package-root`: Specifies where to find imported libraries. 
+   This option cannot be used with --packages. Defaults to null.
 * `--debug` Prints debug information
 * `--retry` Number of retries
   (defaults to "10")
@@ -70,10 +72,10 @@ dart_coveralls upload <options> <directory containing coverage reports from the 
 * `--token` –Token for coveralls
 * `--workers` – Number of workers for parsing
   (defaults to "1")
-* `--packages`: Where to find the packages file, that is, "package:..." imports.
-  (defaults to ".packages")
-* `--package-root`: Ignored/Deprecated. Package directories are no longer supported.
-  (defaults to ".packages")
+* `--packages`: Specifies the path to the package resolution configuration file. 
+   This option cannot be used with --package-root. Defaults to ".packages".
+* `--package-root`: Specifies where to find imported libraries. 
+   This option cannot be used with --packages. Defaults to null.
 * `--debug` Prints debug information
 * `--retry` Number of retries
   (defaults to "10")

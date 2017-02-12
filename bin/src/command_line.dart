@@ -1,17 +1,102 @@
 library cmdpart;
 
 import 'dart:async';
+import 'dart:io' show Directory, File, FileSystemEntity, Platform;
 import "dart:math" show max;
 
 import "package:args/args.dart";
+import 'package:dart_coveralls/dart_coveralls.dart' show CommandLineClient, log;
+import 'package:logging/logging.dart';
+import 'package:stack_trace/src/chain.dart';
 
 export "package:args/args.dart";
+
+final Logger _log = new Logger("dart_coveralls");
 
 abstract class CommandLinePart {
   final ArgParser parser;
 
   CommandLinePart(this.parser);
 
+  bool handleLogging(ArgResults res) {
+    var logLevelStr = res['log-level'];
+
+    Level logLevel = Level.LEVELS
+        .firstWhere((level) => level.name.toLowerCase() == logLevelStr);
+
+    if (res['debug']) {
+      if (logLevel == Level.OFF) {
+        logLevel = Level.ALL;
+      } else {
+        print("Cannot set both `--log-level` and `--debug`.");
+        return false;
+      }
+    }
+
+    if (logLevel != Level.OFF) {
+      log.onRecord.where((rec) => rec.level >= logLevel).listen((rec) {
+        print(rec.message);
+        if (rec.error != null) {
+          print(rec.error);
+        }
+        if (rec.stackTrace != null) {
+          print(new Chain.forTrace(rec.stackTrace).terse);
+        }
+      });
+    }
+
+    return true;
+  }
+
+  /// Performs checks on options --packages, --package-root and --token
+  /// before returning a `CommandLineClient` instance.
+  CommandLineClient getCommandLineClient(ArgResults res) {
+
+    var token = res["token"];
+    token = CommandLineClient.getToken(token, Platform.environment);
+    if (token == null) {
+      if (!res["dry-run"]) {
+        print("Please specify a repo token");
+        return null;
+      }
+      token = "test";
+    }
+    // We don't print out the token here as it could end up in public build logs.
+    _log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
+
+    FileSystemEntity pRoot;
+      String type;
+      if(res["package-root"] != null){
+        if(res["packages"] != null){
+          print("You cannot use both --packages and --package-root options at the same time.");
+          return null;
+        }
+        pRoot = new Directory(res["package-root"]);
+        type = "directory";
+
+      }
+      else{
+        String pFilePath = res["packages"] ?? ".packages";
+        pRoot = new File(pFilePath);
+        type = "file";
+      }
+      if (!pRoot.existsSync()) {
+        print("Packages $type does not exist");
+        return null;
+      }
+
+      _log.info(() => "Using packages ${type}: ${pRoot.path}");
+      return new CommandLineClient(packageRoot: pRoot is Directory ? pRoot.absolute.path : null, packagesPath: pRoot is File ? pRoot.absolute.path : null, token: token);
+  }
+  
+    static ArgParser addCommonOptions(ArgParser parser) {
+        return parser
+          ..addFlag("help", help: "Displays this help", negatable: false)
+          ..addOption("packages",
+              help: 'Specifies the path to the package resolution configuration file. This option cannot be used with --package-root.',)
+          ..addOption("package-root",
+              help: 'Specifies where to find imported libraries. This option cannot be used with --packages.');
+        }
   Future parseAndExecute(List<String> args) => execute(parser.parse(args));
 
   Future execute(ArgResults res);

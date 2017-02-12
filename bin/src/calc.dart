@@ -18,13 +18,26 @@ class CalcPart extends CommandLinePart {
     }
 
     String packageRoot = res["package-root"];
-    if (p.isRelative(packageRoot)) {
-      packageRoot = p.absolute(packageRoot);
-    }
+    String packagesPath = res["packages"];
+    if(packageRoot != null){
+      if (p.isRelative(packageRoot)) {
+        packageRoot = p.absolute(packageRoot);
+      }
 
-    if (!FileSystemEntity.isDirectorySync(packageRoot)) {
-      print("Package root directory does not exist");
-      return;
+      if (!FileSystemEntity.isDirectorySync(packageRoot)) {
+        print("Package root directory does not exist");
+        return;
+      }
+    }
+    else{
+      if (p.isRelative(packagesPath)) {
+        packagesPath = p.absolute(packagesPath);
+      }
+
+      if (!FileSystemEntity.isFileSync(packagesPath)) {
+        print("Packages file does not exist");
+        return;
+      }
     }
 
     if (res.rest.length != 1) {
@@ -43,26 +56,21 @@ class CalcPart extends CommandLinePart {
     }
 
     var workers = int.parse(res["workers"]);
-    var collector = new LcovCollector(packageRoot);
+    var collector = new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath);
 
     var r = await collector.getLcovInformation(file, workers: workers);
 
-    r.printSummary();
     if (res["output"] != null) {
-      await new File(res["output"]).writeAsString(r.result);
+      await new File(res["output"]).writeAsString(r);
     } else {
-      print(r.result);
+      print(r);
     }
   }
 }
 
-ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
-  ..addFlag("help", help: "Prints this help", negatable: false)
+ArgParser _initializeParser() {
+  ArgParser parser = new ArgParser(allowTrailingOptions: true)
   ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
-  ..addOption("output", help: "Output file path")
-  ..addOption("packages",
-      help: 'Where to find the packages file, that is, "package:..." imports.',
-      defaultsTo: ".packages")
-  ..addOption("package-root",
-      help: 'Ignored/Deprecated. Package directories are no longer supported.',
-      defaultsTo: ".packages");
+  ..addOption("output", help: "Output file path");
+  return CommandLinePart.addCommonOptions(parser);
+}

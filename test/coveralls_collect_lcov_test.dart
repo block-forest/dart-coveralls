@@ -1,6 +1,6 @@
 library dart_coveralls.test.collect_lcov;
 
-import 'dart:io' show Directory, File, Platform;
+import 'dart:io' show File;
 
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
