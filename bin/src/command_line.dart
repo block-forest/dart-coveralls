@@ -5,7 +5,7 @@ import 'dart:io' show Directory, File, FileSystemEntity, Platform;
 import "dart:math" show max;
 
 import "package:args/args.dart";
-import 'package:dart_coveralls/dart_coveralls.dart' show CommandLineClient, log;
+import 'package:dart_coveralls/dart_coveralls.dart' show CommandLineClient;
 import 'package:logging/logging.dart';
 import 'package:stack_trace/src/chain.dart';
 
@@ -20,6 +20,10 @@ abstract class CommandLinePart {
 
   bool handleLogging(ArgResults res) {
     var logLevelStr = res['log-level'];
+    if(Level.LEVELS.where((l) => l.value == logLevelStr).length == 0){
+      print("Invalid Log level: ${logLevelStr}");
+      return false;
+    }
 
     Level logLevel = Level.LEVELS
         .firstWhere((level) => level.name.toLowerCase() == logLevelStr);
@@ -34,7 +38,7 @@ abstract class CommandLinePart {
     }
 
     if (logLevel != Level.OFF) {
-      log.onRecord.where((rec) => rec.level >= logLevel).listen((rec) {
+      _log.onRecord.where((rec) => rec.level >= logLevel).listen((rec) {
         print(rec.message);
         if (rec.error != null) {
           print(rec.error);
