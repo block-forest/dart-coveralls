@@ -19,8 +19,8 @@ abstract class CommandLinePart {
   CommandLinePart(this.parser);
 
   bool handleLogging(ArgResults res) {
-    var logLevelStr = res['log-level'];
-    if(Level.LEVELS.where((l) => l.value == logLevelStr).length == 0){
+    String logLevelStr = res['log-level'];
+    if(Level.LEVELS.where((l) => l.name == logLevelStr.toUpperCase()).length == 0){
       print("Invalid Log level: ${logLevelStr}");
       return false;
     }
