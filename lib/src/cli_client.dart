@@ -21,14 +21,11 @@ class CommandLineClient {
 
   CommandLineClient._(this.packagesPath, this.packageRoot, this.token);
 
-  factory CommandLineClient({String packageRoot, String packagesPath,
-      String token, Map<String, String> environment}) {
-
+  factory CommandLineClient({String packageRoot, String packagesPath, String token, Map<String, String> environment}) {
     return new CommandLineClient._(packagesPath, packageRoot, token);
   }
 
-  Future<String> getLcovResult(String testFile,
-      {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
+  Future<String> getLcovResult(String testFile, {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
     var collector =
         new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath, processSystem: processSystem);
     return collector.getLcovInformation(testFile, workers: workers);
@@ -48,16 +45,20 @@ class CommandLineClient {
     return environment['COVERALLS_TOKEN'];
   }
 
-  Future<CoverallsResult> reportToCoveralls(String testFile, {int workers,
+  Future<CoverallsResult> reportToCoveralls(String testFile,
+      {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
-      String coverallsAddress, bool dryRun: false,
-      bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false, bool printJson}) async {
-    var rawLcov = await getLcovResult(testFile,
-        workers: workers, processSystem: processSystem);
+      String coverallsAddress,
+      bool dryRun: false,
+      bool throwOnConnectivityError: false,
+      int retry: 0,
+      bool excludeTestFiles: false,
+      bool printJson}) async {
+    var rawLcov = await getLcovResult(testFile, workers: workers, processSystem: processSystem);
 
-    if(rawLcov == null){
-      print("Nothing to collect: Connection to VM service timed out. Make sure your test file is free from errors: ${testFile}");
+    if (rawLcov == null) {
+      print(
+          "Nothing to collect: Connection to VM service timed out. Make sure your test file is free from errors: ${testFile}");
       exit(0);
     }
 
@@ -72,17 +73,19 @@ class CommandLineClient {
         printJson: printJson);
   }
 
-  Future<CoverallsResult> convertAndUploadToCoveralls(
-      Directory containsVmReports, {int workers,
+  Future<CoverallsResult> convertAndUploadToCoveralls(Directory containsVmReports,
+      {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
-      String coverallsAddress, bool dryRun: false,
-      bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false, bool printJson}) async {
+      String coverallsAddress,
+      bool dryRun: false,
+      bool throwOnConnectivityError: false,
+      int retry: 0,
+      bool excludeTestFiles: false,
+      bool printJson}) async {
     var collector =
         new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath, processSystem: processSystem);
 
-    var result = await collector.convertVmReportsToLcov(containsVmReports,
-        workers: workers);
+    var result = await collector.convertVmReportsToLcov(containsVmReports, workers: workers);
 
     return uploadToCoveralls(result,
         workers: workers,
@@ -95,22 +98,21 @@ class CommandLineClient {
   }
 
   Future<CoverallsResult> uploadToCoveralls(String coverageResult,
-      {int workers, ProcessSystem processSystem: const ProcessSystem(),
-      String coverallsAddress, bool dryRun: false,
-      bool throwOnConnectivityError: false, int retry: 0,
-      bool excludeTestFiles: false, bool printJson}) async {
-
-
+      {int workers,
+      ProcessSystem processSystem: const ProcessSystem(),
+      String coverallsAddress,
+      bool dryRun: false,
+      bool throwOnConnectivityError: false,
+      int retry: 0,
+      bool excludeTestFiles: false,
+      bool printJson}) async {
     var lcov = LcovDocument.parse(coverageResult);
-
 
     var serviceName = travis.getServiceName(Platform.environment);
     var serviceJobId = travis.getServiceJobId(Platform.environment);
 
     var report = CoverallsReport.parse(token, lcov, p.current,
-        excludeTestFiles: excludeTestFiles,
-        serviceName: serviceName,
-        serviceJobId: serviceJobId);
+        excludeTestFiles: excludeTestFiles, serviceName: serviceName, serviceJobId: serviceJobId);
 
     if (printJson) {
       print(const JsonEncoder.withIndent('  ').convert(report));
@@ -136,8 +138,7 @@ class CommandLineClient {
   }
 }
 
-Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
-    {int retry: 0}) async {
+Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString, {int retry: 0}) async {
   var currentRetryCount = 0;
   while (true) {
     try {

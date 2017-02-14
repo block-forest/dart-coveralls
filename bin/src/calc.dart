@@ -19,7 +19,7 @@ class CalcPart extends CommandLinePart {
 
     String packageRoot = res["package-root"];
     String packagesPath = res["packages"];
-    if(packageRoot != null){
+    if (packageRoot != null) {
       if (p.isRelative(packageRoot)) {
         packageRoot = p.absolute(packageRoot);
       }
@@ -28,8 +28,7 @@ class CalcPart extends CommandLinePart {
         print("Package root directory does not exist");
         return;
       }
-    }
-    else{
+    } else {
       if (p.isRelative(packagesPath)) {
         packagesPath = p.absolute(packagesPath);
       }
@@ -70,7 +69,7 @@ class CalcPart extends CommandLinePart {
 
 ArgParser _initializeParser() {
   ArgParser parser = new ArgParser(allowTrailingOptions: true)
-  ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
-  ..addOption("output", help: "Output file path");
+    ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+    ..addOption("output", help: "Output file path");
   return CommandLinePart.addCommonOptions(parser);
 }

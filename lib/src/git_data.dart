@@ -49,11 +49,9 @@ class GitCommit {
 
   GitCommit(this.id, this.author, this.committer, this.message);
 
-  static GitCommit getCommit(Directory dir, String id,
-      {ProcessSystem processSystem: const ProcessSystem()}) {
+  static GitCommit getCommit(Directory dir, String id, {ProcessSystem processSystem: const ProcessSystem()}) {
     var args = ["show", "$id", "--format=full", "--quiet"];
-    var res =
-        processSystem.runProcessSync("git", args, workingDirectory: dir.path);
+    var res = processSystem.runProcessSync("git", args, workingDirectory: dir.path);
     if (0 != res.exitCode) throw new ProcessException("git", args, res.stderr);
     return GitCommit.parse(res.stdout);
   }
@@ -76,13 +74,13 @@ class GitCommit {
   }
 
   Map toJson() => {
-    "id": id,
-    "message": message,
-    "committer_name": committer.name,
-    "committer_email": committer.mail,
-    "author_name": author.name,
-    "author_email": author.mail
-  };
+        "id": id,
+        "message": message,
+        "committer_name": committer.name,
+        "committer_email": committer.mail,
+        "author_name": author.name,
+        "author_email": author.mail
+      };
 }
 
 class GitRemote {
@@ -91,17 +89,12 @@ class GitRemote {
 
   GitRemote(this.name, this.address);
 
-  static List<GitRemote> getGitRemotes(Directory dir,
-      {ProcessSystem processSystem: const ProcessSystem()}) {
+  static List<GitRemote> getGitRemotes(Directory dir, {ProcessSystem processSystem: const ProcessSystem()}) {
     var args = ["remote", "-v"];
-    var res =
-        processSystem.runProcessSync("git", args, workingDirectory: dir.path);
+    var res = processSystem.runProcessSync("git", args, workingDirectory: dir.path);
     if (0 != res.exitCode) throw new ProcessException("git", args, res.stderr);
     var lines = (res.stdout as String).split("\n").where((str) => "" != str);
-    return lines
-        .map((line) => new GitRemote.fromRemoteString(line))
-        .toSet()
-        .toList();
+    return lines.map((line) => new GitRemote.fromRemoteString(line)).toSet().toList();
   }
 
   factory GitRemote.fromRemoteString(String str) {
@@ -126,8 +119,7 @@ class GitBranch {
   GitBranch(this.name, this.reference, this.id);
 
   static String getCurrentBranchName(Directory dir,
-      {ProcessSystem processSystem: const ProcessSystem(),
-      Map<String, String> environment}) {
+      {ProcessSystem processSystem: const ProcessSystem(), Map<String, String> environment}) {
     if (null == environment) environment = Platform.environment;
     if (null != environment["CI_BRANCH"]) return environment["CI_BRANCH"];
 
@@ -135,22 +127,17 @@ class GitBranch {
     if (travisBranch != null) return travisBranch;
 
     var args = ["rev-parse", "--abbrev-ref", "HEAD"];
-    var result =
-        processSystem.runProcessSync("git", args, workingDirectory: dir.path);
-    if (0 != result.exitCode) throw new ProcessException(
-        "git", args, result.stderr, result.exitCode);
+    var result = processSystem.runProcessSync("git", args, workingDirectory: dir.path);
+    if (0 != result.exitCode) throw new ProcessException("git", args, result.stderr, result.exitCode);
     var name = (result.stdout as String).trim();
     return name;
   }
 
-  static GitBranch getCurrent(Directory dir,
-      {ProcessSystem processSystem: const ProcessSystem()}) {
+  static GitBranch getCurrent(Directory dir, {ProcessSystem processSystem: const ProcessSystem()}) {
     var name = getCurrentBranchName(dir, processSystem: processSystem);
     var args = ["show-ref", "$name", "--heads"];
-    var result =
-        processSystem.runProcessSync("git", args, workingDirectory: dir.path);
-    if (0 != result.exitCode) throw new ProcessException(
-        "git", args, result.stderr, result.exitCode);
+    var result = processSystem.runProcessSync("git", args, workingDirectory: dir.path);
+    if (0 != result.exitCode) throw new ProcessException("git", args, result.stderr, result.exitCode);
     var parts = result.stdout.split("\n")[0].split(" ");
     var id = parts[0];
     var ref = parts[1];
@@ -165,15 +152,12 @@ class GitData {
 
   GitData(this.branch, this.remotes, this.headCommit);
 
-  static GitData getGitData(Directory dir,
-      {ProcessSystem processSystem: const ProcessSystem()}) {
+  static GitData getGitData(Directory dir, {ProcessSystem processSystem: const ProcessSystem()}) {
     var branch = GitBranch.getCurrent(dir, processSystem: processSystem);
     var remotes = GitRemote.getGitRemotes(dir);
-    var commit =
-        GitCommit.getCommit(dir, branch.id, processSystem: processSystem);
+    var commit = GitCommit.getCommit(dir, branch.id, processSystem: processSystem);
     return new GitData(branch.name, remotes, commit);
   }
 
-  Map toJson() =>
-      {"head": headCommit, "branch": branch, "remotes": remotes.toList()};
+  Map toJson() => {"head": headCommit, "branch": branch, "remotes": remotes.toList()};
 }

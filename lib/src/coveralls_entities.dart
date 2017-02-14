@@ -15,11 +15,9 @@ class PackageFilter {
   final PackageDartFiles dartFiles;
   final String packageName;
 
-  PackageFilter(this.packageName, this.dartFiles,
-      {this.excludeTestFiles: false});
+  PackageFilter(this.packageName, this.dartFiles, {this.excludeTestFiles: false});
 
-  PackageFilter.from(String projectDirectory,
-      {this.excludeTestFiles: false, FileSystem fileSystem: const FileSystem()})
+  PackageFilter.from(String projectDirectory, {this.excludeTestFiles: false, FileSystem fileSystem: const FileSystem()})
       : packageName = getPackageName(projectDirectory, fileSystem),
         dartFiles = new PackageDartFiles.from(projectDirectory);
 
@@ -32,11 +30,9 @@ class PackageFilter {
     }
 
     var file = fileSystem.getFile(fileName);
-    log.info(
-        () => "  implementation file? ${dartFiles.isImplementationFile(file)}");
+    log.info(() => "  implementation file? ${dartFiles.isImplementationFile(file)}");
     log.info(() => "  test file? ${dartFiles.isTestFile(file)}");
-    if (dartFiles.isImplementationFile(file) ||
-        (!excludeTestFiles && dartFiles.isTestFile(file))) {
+    if (dartFiles.isImplementationFile(file) || (!excludeTestFiles && dartFiles.isTestFile(file))) {
       log.info("  ADDING $fileName");
       return true;
     }
@@ -48,10 +44,8 @@ class PackageFilter {
   ///
   /// This searches [projectDirectory] for a yaml file, which it then
   /// parses for the top level attribute name, which it then returns.
-  static String getPackageName(String projectDirectory,
-      [FileSystem fileSystem = const FileSystem()]) {
-    var pubspecFile =
-        fileSystem.getFile(p.join(projectDirectory, "pubspec.yaml"));
+  static String getPackageName(String projectDirectory, [FileSystem fileSystem = const FileSystem()]) {
+    var pubspecFile = fileSystem.getFile(p.join(projectDirectory, "pubspec.yaml"));
     var pubspecContent = pubspecFile.readAsStringSync();
     var yaml = loadYaml(pubspecContent);
     return yaml["name"];
@@ -69,11 +63,9 @@ class PackageDartFiles {
     var testFiles = _getTestFiles(dir).toList();
     var implementationFiles = _getImplementationFiles(dir).toList();
 
-    testFiles.forEach(
-        (file) => log.info("Test file: ${p.normalize(file.absolute.path)}"));
+    testFiles.forEach((file) => log.info("Test file: ${p.normalize(file.absolute.path)}"));
 
-    implementationFiles.forEach((file) =>
-        log.info("Implementation file: ${p.normalize(file.absolute.path)}"));
+    implementationFiles.forEach((file) => log.info("Implementation file: ${p.normalize(file.absolute.path)}"));
 
     return new PackageDartFiles(testFiles, implementationFiles);
   }
@@ -83,12 +75,10 @@ class PackageDartFiles {
   }
 
   bool isImplementationFile(File file) {
-    return implementationFiles
-        .any((implFile) => sameAbsolutePath(implFile, file));
+    return implementationFiles.any((implFile) => sameAbsolutePath(implFile, file));
   }
 
-  static bool isTestDirectory(FileSystemEntity entity) =>
-      entity is Directory && "test" == p.basename(entity.path);
+  static bool isTestDirectory(FileSystemEntity entity) => entity is Directory && "test" == p.basename(entity.path);
 
   static bool sameAbsolutePath(File f1, File f2) {
     var absolutePath1 = p.normalize(f1.absolute.path);
@@ -114,10 +104,10 @@ class SourceFileReport {
   }
 
   Map toJson() => {
-    "name": sourceFile.name,
-    "source": sourceFile.source,
-    "coverage": coverage.values.map((lv) => lv.lineCount).toList()
-  };
+        "name": sourceFile.name,
+        "source": sourceFile.source,
+        "coverage": coverage.values.map((lv) => lv.lineCount).toList()
+      };
 }
 
 class SourceFile {
@@ -126,8 +116,7 @@ class SourceFile {
 
   SourceFile(this.name, this.source);
 
-  static SourceFile parse(String heading, String packageDir,
-      {FileSystem fileSystem: const FileSystem()}) {
+  static SourceFile parse(String heading, String packageDir, {FileSystem fileSystem: const FileSystem()}) {
     var path = heading.split(":").last;
     var name = resolveName(path, packageDir, fileSystem: fileSystem);
     var sourceFile = getSourceFile(path, packageDir, fileSystem: fileSystem);
@@ -135,8 +124,7 @@ class SourceFile {
     return new SourceFile(name, source);
   }
 
-  static String resolveName(String path, String projectDirectory,
-      {FileSystem fileSystem: const FileSystem()}) {
+  static String resolveName(String path, String projectDirectory, {FileSystem fileSystem: const FileSystem()}) {
     var file = fileSystem.getFile(path);
     if (!file.isAbsolute) {
       var packagePath = p.join(projectDirectory, 'packages', path);
@@ -147,8 +135,7 @@ class SourceFile {
     return p.relative(file.path, from: projectDirectory);
   }
 
-  static File getSourceFile(String path, String packageDir,
-      {FileSystem fileSystem: const FileSystem()}) {
+  static File getSourceFile(String path, String packageDir, {FileSystem fileSystem: const FileSystem()}) {
     var file = fileSystem.getFile(path);
     if (file.existsSync()) {
       return file.absolute;
@@ -170,15 +157,13 @@ class Coverage {
   /// Parses the given LCOV numeration into [LineValue]s and
   /// instantiates a [Coverage] object with the parsed values
   static Coverage parse(String lcovContent) {
-    var numeration =
-        lcovContent.split("\n").where((str) => str.isNotEmpty).toList();
+    var numeration = lcovContent.split("\n").where((str) => str.isNotEmpty).toList();
     var values = [];
     var current = 1;
     for (int i = 0; i < numeration.length; i++) {
       var lineValue = LineValue.parse(numeration[i]);
       int distance = lineValue.lineNumber - values.length - 1;
-      if (distance > 0) values.addAll(
-          new List.generate(distance, (_) => new LineValue.noCount(current++)));
+      if (distance > 0) values.addAll(new List.generate(distance, (_) => new LineValue.noCount(current++)));
       values.add(lineValue);
       current++;
     }
@@ -217,17 +202,12 @@ class SourceFileReports {
 
   SourceFileReports(this.sourceFileReports);
 
-  static SourceFileReports parse(LcovDocument lcov, String projectDirectory,
-      {bool excludeTestFiles: false}) {
-    var filter = new PackageFilter.from(projectDirectory,
-        excludeTestFiles: excludeTestFiles);
+  static SourceFileReports parse(LcovDocument lcov, String projectDirectory, {bool excludeTestFiles: false}) {
+    var filter = new PackageFilter.from(projectDirectory, excludeTestFiles: excludeTestFiles);
 
-    var relevantParts =
-        lcov.parts.where((part) => filter.accept(part.fileName));
+    var relevantParts = lcov.parts.where((part) => filter.accept(part.fileName));
 
-    var reports = relevantParts
-        .map((part) => SourceFileReport.parse(part, projectDirectory))
-        .toList();
+    var reports = relevantParts.map((part) => SourceFileReport.parse(part, projectDirectory)).toList();
     return new SourceFileReports(reports);
   }
 }
@@ -239,17 +219,13 @@ class CoverallsReport {
   final String serviceName;
   final String serviceJobId;
 
-  CoverallsReport(this.repoToken, this.sourceFileReports, this.gitData,
-      {this.serviceName, this.serviceJobId});
+  CoverallsReport(this.repoToken, this.sourceFileReports, this.gitData, {this.serviceName, this.serviceJobId});
 
-  static CoverallsReport parse(
-      String repoToken, LcovDocument lcov, String projectDirectory,
+  static CoverallsReport parse(String repoToken, LcovDocument lcov, String projectDirectory,
       {String serviceName, String serviceJobId, bool excludeTestFiles: false}) {
     var gitData = GitData.getGitData(new Directory(projectDirectory));
-    var reports = SourceFileReports.parse(lcov, projectDirectory,
-        excludeTestFiles: excludeTestFiles);
-    return new CoverallsReport(repoToken, reports, gitData,
-        serviceName: serviceName, serviceJobId: serviceJobId);
+    var reports = SourceFileReports.parse(lcov, projectDirectory, excludeTestFiles: excludeTestFiles);
+    return new CoverallsReport(repoToken, reports, gitData, serviceName: serviceName, serviceJobId: serviceJobId);
   }
 
   Map toJson() {
@@ -301,17 +277,15 @@ Iterable<File> _getDartFiles(FileSystemEntity entity) sync* {
   }
 }
 
-Iterable<File> _getImplementationFiles(Directory projectDirectory) =>
-    projectDirectory
-        .listSync(recursive: false, followLinks: false)
-        .where((entity) => !PackageDartFiles.isTestDirectory(entity))
-        .expand(_getDartFiles);
+Iterable<File> _getImplementationFiles(Directory projectDirectory) => projectDirectory
+    .listSync(recursive: false, followLinks: false)
+    .where((entity) => !PackageDartFiles.isTestDirectory(entity))
+    .expand(_getDartFiles);
 
 Iterable<File> _getTestFiles(Directory projectDirectory) sync* {
   try {
-    Directory testDirectory = projectDirectory
-        .listSync(followLinks: false)
-        .singleWhere(PackageDartFiles.isTestDirectory) as Directory;
+    Directory testDirectory =
+        projectDirectory.listSync(followLinks: false).singleWhere(PackageDartFiles.isTestDirectory) as Directory;
     yield* _getDartFiles(testDirectory);
   } on StateError {}
 }

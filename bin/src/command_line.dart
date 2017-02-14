@@ -20,13 +20,12 @@ abstract class CommandLinePart {
 
   bool handleLogging(ArgResults res) {
     String logLevelStr = res['log-level'];
-    if(Level.LEVELS.where((l) => l.name == logLevelStr.toUpperCase()).length == 0){
+    if (Level.LEVELS.where((l) => l.name == logLevelStr.toUpperCase()).length == 0) {
       print("Invalid Log level: ${logLevelStr}");
       return false;
     }
 
-    Level logLevel = Level.LEVELS
-        .firstWhere((level) => level.name.toLowerCase() == logLevelStr);
+    Level logLevel = Level.LEVELS.firstWhere((level) => level.name.toLowerCase() == logLevelStr);
 
     if (res['debug']) {
       if (logLevel == Level.OFF) {
@@ -55,7 +54,6 @@ abstract class CommandLinePart {
   /// Performs checks on options --packages, --package-root and --token
   /// before returning a `CommandLineClient` instance.
   CommandLineClient getCommandLineClient(ArgResults res) {
-
     var token = res["token"];
     token = CommandLineClient.getToken(token, Platform.environment);
     if (token == null) {
@@ -69,38 +67,43 @@ abstract class CommandLinePart {
     _log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
 
     FileSystemEntity pRoot;
-      String type;
-      if(res["package-root"] != null){
-        if(res["packages"] != null){
-          print("You cannot use both --packages and --package-root options at the same time.");
-          return null;
-        }
-        pRoot = new Directory(res["package-root"]);
-        type = "directory";
-
-      }
-      else{
-        String pFilePath = res["packages"] ?? ".packages";
-        pRoot = new File(pFilePath);
-        type = "file";
-      }
-      if (!pRoot.existsSync()) {
-        print("Packages $type does not exist");
+    String type;
+    if (res["package-root"] != null) {
+      if (res["packages"] != null) {
+        print("You cannot use both --packages and --package-root options at the same time.");
         return null;
       }
+      pRoot = new Directory(res["package-root"]);
+      type = "directory";
+    } else {
+      String pFilePath = res["packages"] ?? ".packages";
+      pRoot = new File(pFilePath);
+      type = "file";
+    }
+    if (!pRoot.existsSync()) {
+      print("Packages $type does not exist");
+      return null;
+    }
 
-      _log.info(() => "Using packages ${type}: ${pRoot.path}");
-      return new CommandLineClient(packageRoot: pRoot is Directory ? pRoot.absolute.path : null, packagesPath: pRoot is File ? pRoot.absolute.path : null, token: token);
+    _log.info(() => "Using packages ${type}: ${pRoot.path}");
+    return new CommandLineClient(
+        packageRoot: pRoot is Directory ? pRoot.absolute.path : null,
+        packagesPath: pRoot is File ? pRoot.absolute.path : null,
+        token: token);
   }
-  
-    static ArgParser addCommonOptions(ArgParser parser) {
-        return parser
-          ..addFlag("help", help: "Displays this help", negatable: false)
-          ..addOption("packages",
-              help: 'Specifies the path to the package resolution configuration file. This option cannot be used with --package-root.',)
-          ..addOption("package-root",
-              help: 'Specifies where to find imported libraries. This option cannot be used with --packages.');
-        }
+
+  static ArgParser addCommonOptions(ArgParser parser) {
+    return parser
+      ..addFlag("help", help: "Displays this help", negatable: false)
+      ..addOption(
+        "packages",
+        help:
+            'Specifies the path to the package resolution configuration file. This option cannot be used with --package-root.',
+      )
+      ..addOption("package-root",
+          help: 'Specifies where to find imported libraries. This option cannot be used with --packages.');
+  }
+
   Future parseAndExecute(List<String> args) => execute(parser.parse(args));
 
   Future execute(ArgResults res);
@@ -151,8 +154,7 @@ class CommandLineHub extends CommandLinePart {
 
   String get usage {
     int len = _getLongestNameLength();
-    return "Possible commands are: \n\n" +
-        _parts.keys.map((info) => info.toString(len)).join("\n");
+    return "Possible commands are: \n\n" + _parts.keys.map((info) => info.toString(len)).join("\n");
   }
 }
 

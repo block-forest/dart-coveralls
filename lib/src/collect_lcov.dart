@@ -17,8 +17,7 @@ class LcovDocument {
 
   /// Parses a string representation of an lcov document
   static LcovDocument parse(String lcovDocument) {
-    var parts = lcovDocument.split("end_of_record\n")
-      ..removeWhere((str) => str.isEmpty);
+    var parts = lcovDocument.split("end_of_record\n")..removeWhere((str) => str.isEmpty);
     var lcovParts = parts.map(LcovPart.parse).toList();
     return new LcovDocument(lcovParts);
   }
@@ -39,8 +38,7 @@ class LcovPart {
 
     var end = lcovPart.indexOf("\nend_of_record");
     if (-1 == end) end = null; // If "end_of_record" is missing, take rest
-    var content =
-    lcovPart.substring(firstLineEnd + 1, end); // Skip newline symbol
+    var content = lcovPart.substring(firstLineEnd + 1, end); // Skip newline symbol
 
     return new LcovPart(heading, content);
   }
@@ -56,19 +54,14 @@ class LcovCollector {
   final String packagesPath;
   final ProcessSystem processSystem;
 
-  LcovCollector({ this.packageRoot, this.packagesPath,
-                this.processSystem: const ProcessSystem(), this.sdkRoot}) {}
+  LcovCollector({this.packageRoot, this.packagesPath, this.processSystem: const ProcessSystem(), this.sdkRoot}) {}
 
-  Future<String> convertVmReportsToLcov(
-      Directory directoryContainingVmReports, {int workers: 1}) async {
-    var reportFiles = await directoryContainingVmReports
-        .list(recursive: false, followLinks: false)
-        .toList();
+  Future<String> convertVmReportsToLcov(Directory directoryContainingVmReports, {int workers: 1}) async {
+    var reportFiles = await directoryContainingVmReports.list(recursive: false, followLinks: false).toList();
 
     var hitmap = await parseCoverage(reportFiles as Iterable<File>, workers);
     return await _formatCoverageJson(hitmap);
   }
-
 
   /// Returns an LCOV string of the tested [File].
   ///
@@ -76,12 +69,11 @@ class LcovCollector {
   /// This uses [workers] to parse the collected information.
   Future<String> getLcovInformation(String testFile, {int workers: 1}) async {
     if (!p.isAbsolute(testFile)) {
-      throw new ArgumentError.value(
-          testFile, 'testFile', 'Must be an absolute path.');
+      throw new ArgumentError.value(testFile, 'testFile', 'Must be an absolute path.');
     }
 
     var reportFile = await _getCoverageJson(testFile);
-    if(reportFile == null){
+    if (reportFile == null) {
       return null;
     }
 
@@ -91,12 +83,11 @@ class LcovCollector {
   }
 
   /// Formats coverage hitmap json to an lcov string
-  Future<String> _formatCoverageJson(Map<String, dynamic> hitmap){
+  Future<String> _formatCoverageJson(Map<String, dynamic> hitmap) {
     var resolver;
-    if(packageRoot != null){
+    if (packageRoot != null) {
       resolver = new Resolver(packageRoot: packageRoot, sdkRoot: sdkRoot);
-    }
-    else{
+    } else {
       resolver = new Resolver(packagesPath: packagesPath, sdkRoot: sdkRoot);
     }
     var formatter = new LcovFormatter(resolver);
@@ -104,50 +95,41 @@ class LcovCollector {
   }
 
   /// Generates and returns a coverage json file
-  Future<List<Map<String, dynamic>>> _getCoverageJson(
-      String testFile) async {
-
+  Future<List<Map<String, dynamic>>> _getCoverageJson(String testFile) async {
     bool terminated = false;
 
-    var dartArgs = [
-      "--pause-isolates-on-exit",
-      "--enable-vm-service"
-    ];
-    if(packageRoot != null){
+    var dartArgs = ["--pause-isolates-on-exit", "--enable-vm-service"];
+    if (packageRoot != null) {
       dartArgs.add("--package-root=${packageRoot}");
-    }
-    else{
+    } else {
       dartArgs.add("--packages=${packagesPath}");
     }
     dartArgs.add(testFile);
 
     Process process = await processSystem.startProcess(Platform.executable, dartArgs);
-    process.exitCode.then((exitCode){
+    process.exitCode.then((exitCode) {
       if (exitCode < 0 && !terminated) {
-        throw new ProcessException(Platform.executable, dartArgs,
-            'There was a critical error. Exit code: ${exitCode}',
-            exitCode);
+        throw new ProcessException(
+            Platform.executable, dartArgs, 'There was a critical error. Exit code: ${exitCode}', exitCode);
       }
     });
 
     Completer<Uri> hostCompleter = new Completer<Uri>();
     process.stdout.transform(UTF8.decoder).listen((data) {
       Uri uri = util.extractObservatoryUri(data);
-      if(uri != null){
+      if (uri != null) {
         hostCompleter.complete(uri);
       }
     });
     Uri host = await hostCompleter.future;
 
-    try{
+    try {
       Map<String, dynamic> coverageResults = await collect(host, true, false, timeout: new Duration(seconds: 60));
       return coverageResults['coverage'];
-    }
-    catch(e){
+    } catch (e) {
       print(e);
       return null;
-    }
-    finally{
+    } finally {
       terminated = true;
       process.kill();
     }
