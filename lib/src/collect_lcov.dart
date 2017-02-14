@@ -83,7 +83,7 @@ class LcovCollector {
   }
 
   /// Formats coverage hitmap json to an lcov string
-  Future<String> _formatCoverageJson(Map<String, dynamic> hitmap) {
+  Future<String> _formatCoverageJson(Map<dynamic, dynamic> hitmap) {
     var resolver;
     if (packageRoot != null) {
       resolver = new Resolver(packageRoot: packageRoot, sdkRoot: sdkRoot);

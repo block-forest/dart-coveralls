@@ -158,7 +158,7 @@ class Coverage {
   /// instantiates a [Coverage] object with the parsed values
   static Coverage parse(String lcovContent) {
     var numeration = lcovContent.split("\n").where((str) => str.isNotEmpty).toList();
-    var values = [];
+    List<LineValue> values = [];
     var current = 1;
     for (int i = 0; i < numeration.length; i++) {
       var lineValue = LineValue.parse(numeration[i]);

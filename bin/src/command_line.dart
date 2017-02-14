@@ -66,6 +66,17 @@ abstract class CommandLinePart {
     // We don't print out the token here as it could end up in public build logs.
     _log.info("Token is ${token.isEmpty ? 'empty' : 'not empty'}");
 
+    FileSystemEntity pRoot = handlePackages(res);
+    if (pRoot == null) {
+      return null;
+    }
+    return new CommandLineClient(
+        packageRoot: pRoot is Directory ? pRoot.absolute.path : null,
+        packagesPath: pRoot is File ? pRoot.absolute.path : null,
+        token: token);
+  }
+
+  FileSystemEntity handlePackages(ArgResults res) {
     FileSystemEntity pRoot;
     String type;
     if (res["package-root"] != null) {
@@ -86,10 +97,8 @@ abstract class CommandLinePart {
     }
 
     _log.info(() => "Using packages ${type}: ${pRoot.path}");
-    return new CommandLineClient(
-        packageRoot: pRoot is Directory ? pRoot.absolute.path : null,
-        packagesPath: pRoot is File ? pRoot.absolute.path : null,
-        token: token);
+
+    return pRoot;
   }
 
   static ArgParser addCommonOptions(ArgParser parser) {

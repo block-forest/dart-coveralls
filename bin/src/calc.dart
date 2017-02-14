@@ -17,26 +17,9 @@ class CalcPart extends CommandLinePart {
       return;
     }
 
-    String packageRoot = res["package-root"];
-    String packagesPath = res["packages"];
-    if (packageRoot != null) {
-      if (p.isRelative(packageRoot)) {
-        packageRoot = p.absolute(packageRoot);
-      }
-
-      if (!FileSystemEntity.isDirectorySync(packageRoot)) {
-        print("Package root directory does not exist");
-        return;
-      }
-    } else {
-      if (p.isRelative(packagesPath)) {
-        packagesPath = p.absolute(packagesPath);
-      }
-
-      if (!FileSystemEntity.isFileSync(packagesPath)) {
-        print("Packages file does not exist");
-        return;
-      }
+    FileSystemEntity pRoot = handlePackages(res);
+    if (pRoot == null) {
+      return;
     }
 
     if (res.rest.length != 1) {
@@ -55,7 +38,9 @@ class CalcPart extends CommandLinePart {
     }
 
     var workers = int.parse(res["workers"]);
-    var collector = new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath);
+    var collector = new LcovCollector(
+        packageRoot: pRoot is Directory ? pRoot.absolute.path : null,
+        packagesPath: pRoot is File ? pRoot.absolute.path : null);
 
     var r = await collector.getLcovInformation(file, workers: workers);
 
