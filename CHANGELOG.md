@@ -1,3 +1,21 @@
+### 0.5.0
+
+* Support the latest `coverage` `0.9.0` series releases.
+ 
+* Support for breaking changes introduced with Dart v1.22.0.
+
+* Added `--packages` option to all sub commands. It defaults to null, though the
+  file path `.packages` will be used if no path is given in option `--package-root`.
+  The `--packages` and `--package-root` options cannot be used together.
+  
+* Refactored `LcovCollector` so that it doesn't duplicate logic already 
+  present in `coverage`.
+  
+* Refactored `CommandLinePart`s to minimize duplicate code.
+
+* Introduced a timeout of 60 seconds in cases where the VM doesn't respond.
+  This should only be the case if the given test file contains serious syntax errors.
+
 ### 0.4.0
 
 * Add an upload-only option, which does not run any script

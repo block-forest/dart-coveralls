@@ -40,14 +40,12 @@ void main() {
 
   group("GitRemote", () {
     test("fromRemoteString", () {
-      var remoteString =
-          "origin\tgit@github.com:Adracus/dart-coveralls.git (fetch)";
+      var remoteString = "origin\tgit@github.com:Adracus/dart-coveralls.git (fetch)";
 
       var remote = new GitRemote.fromRemoteString(remoteString);
 
       expect(remote.name, equals("origin"));
-      expect(
-          remote.address, equals("git@github.com:Adracus/dart-coveralls.git"));
+      expect(remote.address, equals("git@github.com:Adracus/dart-coveralls.git"));
     });
 
     test("getGitRemotes", () {
@@ -56,29 +54,22 @@ void main() {
       var mockDir = new DirectoryMock();
       var args = ["remote", "-v"];
       mockDir.when(callsTo("get path")).thenReturn(".");
-      processSystem
-          .when(callsTo("runProcessSync", "git", args))
-          .thenReturn(processResult);
+      processSystem.when(callsTo("runProcessSync", "git", args)).thenReturn(processResult);
       processResult.when(callsTo("get stdout")).thenReturn(
           "origin\tgit@github.com:Adracus/dart-coveralls.git (fetch)\n" +
               "origin\tgit@github.com:Adracus/dart-coveralls.git (push)");
       processResult.when(callsTo("get exitCode")).thenReturn(0);
-      mockDir
-          .when(callsTo("runCommand", ["remote", "-v"]))
-          .thenReturn(new Future.value(processResult));
-      var remotes =
-          GitRemote.getGitRemotes(mockDir, processSystem: processSystem);
+      mockDir.when(callsTo("runCommand", ["remote", "-v"])).thenReturn(new Future.value(processResult));
+      var remotes = GitRemote.getGitRemotes(mockDir, processSystem: processSystem);
       expect(remotes.length, equals(1));
       expect(remotes.single.name, equals("origin"));
-      expect(remotes.single.address,
-          equals("git@github.com:Adracus/dart-coveralls.git"));
+      expect(remotes.single.address, equals("git@github.com:Adracus/dart-coveralls.git"));
     });
 
     test("covString", () {
       var remote = new GitRemote("test", "git@github.com");
 
-      expect(
-          remote.toJson(), equals({"name": "test", "url": "git@github.com"}));
+      expect(remote.toJson(), equals({"name": "test", "url": "git@github.com"}));
     });
   });
 

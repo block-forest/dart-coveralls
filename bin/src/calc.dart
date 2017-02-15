@@ -17,13 +17,8 @@ class CalcPart extends CommandLinePart {
       return;
     }
 
-    String packageRoot = res["package-root"];
-    if (p.isRelative(packageRoot)) {
-      packageRoot = p.absolute(packageRoot);
-    }
-
-    if (!FileSystemEntity.isDirectorySync(packageRoot)) {
-      print("Package root directory does not exist");
+    FileSystemEntity pRoot = handlePackages(res);
+    if (pRoot == null) {
       return;
     }
 
@@ -43,23 +38,23 @@ class CalcPart extends CommandLinePart {
     }
 
     var workers = int.parse(res["workers"]);
-    var collector = new LcovCollector(packageRoot);
+    var collector = new LcovCollector(
+        packageRoot: pRoot is Directory ? pRoot.absolute.path : null,
+        packagesPath: pRoot is File ? pRoot.absolute.path : null);
 
     var r = await collector.getLcovInformation(file, workers: workers);
 
-    r.printSummary();
     if (res["output"] != null) {
-      await new File(res["output"]).writeAsString(r.result);
+      await new File(res["output"]).writeAsString(r);
     } else {
-      print(r.result);
+      print(r);
     }
   }
 }
 
-ArgParser _initializeParser() => new ArgParser(allowTrailingOptions: true)
-  ..addFlag("help", help: "Prints this help", negatable: false)
-  ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
-  ..addOption("output", help: "Output file path")
-  ..addOption("package-root",
-      help: 'Where to find packages, that is, "package:..." imports.',
-      defaultsTo: "packages");
+ArgParser _initializeParser() {
+  ArgParser parser = new ArgParser(allowTrailingOptions: true)
+    ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+    ..addOption("output", help: "Output file path");
+  return CommandLinePart.addCommonOptions(parser);
+}

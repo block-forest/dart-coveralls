@@ -14,44 +14,34 @@ void _expectLineValue(LineValue lv, int lineNumber, int lineCount) {
 FileMock _absoluteMock(String path, String absolutePath) {
   var mock = new FileMock();
   var absolute = new FileMock();
-  absolute
-    ..when(callsTo("get absolute")).alwaysReturn(absolute)
-    ..when(callsTo("get path")).alwaysReturn(absolutePath);
-  mock
-    ..when(callsTo("get path")).alwaysReturn(path)
-    ..when(callsTo("get absolute")).alwaysReturn(absolute);
+  absolute..when(callsTo("get absolute")).alwaysReturn(absolute)..when(callsTo("get path")).alwaysReturn(absolutePath);
+  mock..when(callsTo("get path")).alwaysReturn(path)..when(callsTo("get absolute")).alwaysReturn(absolute);
   return mock;
 }
 
 void main() {
   group("PackageDartFiles", () {
     var testFiles = [
-      _absoluteMock(
-          "test/test.dart", "/home/user/dart/dart_coveralls/test/test.dart"),
-      _absoluteMock("test/other_test.dart",
-          "/home/user/dart/dart_coveralls/test/other_test.dart")
+      _absoluteMock("test/test.dart", "/home/user/dart/dart_coveralls/test/test.dart"),
+      _absoluteMock("test/other_test.dart", "/home/user/dart/dart_coveralls/test/other_test.dart")
     ];
-    var implFiles = [
-      _absoluteMock(
-          "lib/program.dart", "/home/user/dart/dart_coveralls/lib/program.dart")
-    ];
+    var implFiles = [_absoluteMock("lib/program.dart", "/home/user/dart/dart_coveralls/lib/program.dart")];
     var dartFiles = new PackageDartFiles(testFiles, implFiles);
 
     test("isTestFile", () {
-      expect(dartFiles.isTestFile(_absoluteMock(
-              "test.dart", "/home/user/dart/dart_coveralls/test/test.dart")),
-          isTrue);
-      expect(dartFiles.isTestFile(_absoluteMock(
-              "test.dart", "/home/user/dart/dart_coveralls/lib/program.dart")),
-          isFalse);
+      expect(dartFiles.isTestFile(_absoluteMock("test.dart", "/home/user/dart/dart_coveralls/test/test.dart")), isTrue);
+      expect(
+          dartFiles.isTestFile(_absoluteMock("test.dart", "/home/user/dart/dart_coveralls/lib/program.dart")), isFalse);
     });
 
     test("isImplementationFile", () {
-      expect(dartFiles.isImplementationFile(_absoluteMock(
-              "test.dart", "/home/user/dart/dart_coveralls/test/test.dart")),
+      expect(
+          dartFiles.isImplementationFile(_absoluteMock("test.dart", "/home/user/dart/dart_coveralls/test/test.dart")),
           isFalse);
-      expect(dartFiles.isImplementationFile(_absoluteMock("program.dart",
-          "/home/user/dart/dart_coveralls/lib/program.dart")), isTrue);
+      expect(
+          dartFiles
+              .isImplementationFile(_absoluteMock("program.dart", "/home/user/dart/dart_coveralls/lib/program.dart")),
+          isTrue);
     });
 
     test("isSameAbsolutePath", () {
@@ -66,10 +56,8 @@ void main() {
     });
 
     test("isTestDirectory", () {
-      var testDir = new DirectoryMock()
-        ..when(callsTo("get path")).thenReturn("test");
-      var notTestDir = new DirectoryMock()
-        ..when(callsTo("get path")).thenReturn("nottest");
+      var testDir = new DirectoryMock()..when(callsTo("get path")).thenReturn("test");
+      var notTestDir = new DirectoryMock()..when(callsTo("get path")).thenReturn("nottest");
       var fileMock = new FileMock();
 
       expect(PackageDartFiles.isTestDirectory(testDir), isTrue);
@@ -84,51 +72,34 @@ void main() {
     test("getPackageName", () {
       var fileSystem = new FileSystemMock();
       var fileMock = new FileMock();
-      fileMock
-          .when(callsTo("readAsStringSync"))
-          .thenReturn("name: dart_coveralls");
-      fileSystem
-          .when(callsTo("getFile", "./pubspec.yaml"))
-          .thenReturn(fileMock);
+      fileMock.when(callsTo("readAsStringSync")).thenReturn("name: dart_coveralls");
+      fileSystem.when(callsTo("getFile", "./pubspec.yaml")).thenReturn(fileMock);
 
       var name = PackageFilter.getPackageName('.', fileSystem);
       expect(name, equals("dart_coveralls"));
-      fileSystem
-          .getLogs(callsTo("getFile", "./pubspec.yaml"))
-          .verify(happenedOnce);
+      fileSystem.getLogs(callsTo("getFile", "./pubspec.yaml")).verify(happenedOnce);
       fileMock.getLogs(callsTo("readAsStringSync")).verify(happenedOnce);
     });
 
     test("accept", () {
       var testFiles = [
-        _absoluteMock(
-            "test/test.dart", "/home/user/dart/dart_coveralls/test/test.dart"),
-        _absoluteMock("test/other_test.dart",
-            "/home/user/dart/dart_coveralls/test/other_test.dart")
+        _absoluteMock("test/test.dart", "/home/user/dart/dart_coveralls/test/test.dart"),
+        _absoluteMock("test/other_test.dart", "/home/user/dart/dart_coveralls/test/other_test.dart")
       ];
-      var implFiles = [
-        _absoluteMock("lib/program.dart",
-            "/home/user/dart/dart_coveralls/lib/program.dart")
-      ];
+      var implFiles = [_absoluteMock("lib/program.dart", "/home/user/dart/dart_coveralls/lib/program.dart")];
 
       var fsMock = new FileSystemMock()
-        ..when(callsTo(
-                "getFile", "/home/user/dart/dart_coveralls/test/test.dart"))
-            .alwaysReturn(testFiles.first);
+        ..when(callsTo("getFile", "/home/user/dart/dart_coveralls/test/test.dart")).alwaysReturn(testFiles.first);
 
-      var packageFilter = new PackageFilter(
-          "dart_coveralls", new PackageDartFiles(testFiles, implFiles));
-      var noTestFilter = new PackageFilter(
-          "dart_coveralls", new PackageDartFiles(testFiles, implFiles),
-          excludeTestFiles: true);
+      var packageFilter = new PackageFilter("dart_coveralls", new PackageDartFiles(testFiles, implFiles));
+      var noTestFilter =
+          new PackageFilter("dart_coveralls", new PackageDartFiles(testFiles, implFiles), excludeTestFiles: true);
 
       expect(packageFilter.accept("dart_coveralls/program.dart"), isTrue);
       expect(packageFilter.accept("not_coveralls/program.dart"), isFalse);
 
-      expect(packageFilter.accept(
-          "/home/user/dart/dart_coveralls/test/test.dart", fsMock), isTrue);
-      expect(noTestFilter.accept(
-          "/home/user/dart/dart_coveralls/test/test.dart", fsMock), isFalse);
+      expect(packageFilter.accept("/home/user/dart/dart_coveralls/test/test.dart", fsMock), isTrue);
+      expect(noTestFilter.accept("/home/user/dart/dart_coveralls/test/test.dart", fsMock), isFalse);
     });
   });
 
@@ -159,11 +130,13 @@ void main() {
 
       var report = new SourceFileReport(file, coverage);
 
-      expect(report.toJson(), equals({
-        'name': 'a',
-        'source': 'b',
-        "coverage": [null, null, 3, 5, null, 3]
-      }));
+      expect(
+          report.toJson(),
+          equals({
+            'name': 'a',
+            'source': 'b',
+            "coverage": [null, null, 3, 5, null, 3]
+          }));
     });
   });
 
@@ -190,8 +163,7 @@ void main() {
         fileMock.when(callsTo("existsSync")).thenReturn(true);
         fileMock.when(callsTo("get absolute")).thenReturn(fileMock);
         fileSystem.when(callsTo("getFile", "test.file")).thenReturn(fileMock);
-        var file =
-            SourceFile.getSourceFile("test.file", '.', fileSystem: fileSystem);
+        var file = SourceFile.getSourceFile("test.file", '.', fileSystem: fileSystem);
 
         expect(identical(fileMock, file), isTrue);
       });
@@ -204,22 +176,13 @@ void main() {
 
         fileMock.when(callsTo("existsSync")).thenReturn(false);
         dirMock.when(callsTo("get path")).thenReturn(".");
-        fileSystem
-            .when(callsTo("getFile", "dart_coveralls/test.file"))
-            .thenReturn(fileMock);
-        fileSystem
-            .when(callsTo("getFile", "./packages/dart_coveralls/test.file"))
-            .thenReturn(fileMock);
-        fileMock
-            .when(callsTo("resolveSymbolicLinksSync"))
-            .thenReturn("resolvedFile.dart");
-        fileSystem
-            .when(callsTo("getFile", "resolvedFile.dart"))
-            .thenReturn(resolvedFile);
+        fileSystem.when(callsTo("getFile", "dart_coveralls/test.file")).thenReturn(fileMock);
+        fileSystem.when(callsTo("getFile", "./packages/dart_coveralls/test.file")).thenReturn(fileMock);
+        fileMock.when(callsTo("resolveSymbolicLinksSync")).thenReturn("resolvedFile.dart");
+        fileSystem.when(callsTo("getFile", "resolvedFile.dart")).thenReturn(resolvedFile);
         resolvedFile.when(callsTo("get absolute")).thenReturn(resolvedFile);
 
-        var file = SourceFile.getSourceFile("dart_coveralls/test.file", '.',
-            fileSystem: fileSystem);
+        var file = SourceFile.getSourceFile("dart_coveralls/test.file", '.', fileSystem: fileSystem);
 
         expect(identical(file, resolvedFile), isTrue);
       });

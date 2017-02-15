@@ -14,14 +14,11 @@ class CoverallsEndpoint {
   final Uri coverallsAddress;
 
   CoverallsEndpoint([coverallsAddress = COVERALLS_ADDRESS])
-      : coverallsAddress = coverallsAddress is Uri
-          ? coverallsAddress
-          : Uri.parse(COVERALLS_ADDRESS);
+      : coverallsAddress = coverallsAddress is Uri ? coverallsAddress : Uri.parse(COVERALLS_ADDRESS);
 
   MultipartRequest _getCoverallsRequest(String json) {
     var req = new MultipartRequest("POST", coverallsAddress);
-    req.files.add(
-        new MultipartFile.fromString("json_file", json, filename: "json_file"));
+    req.files.add(new MultipartFile.fromString("json_file", json, filename: "json_file"));
     return req;
   }
 

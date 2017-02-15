@@ -15,30 +15,19 @@ import 'process_system.dart';
 import 'services/travis.dart' as travis;
 
 class CommandLineClient {
-  final String projectDirectory;
+  final String packagesPath;
   final String packageRoot;
   final String token;
 
-  CommandLineClient._(this.projectDirectory, this.packageRoot, this.token);
+  CommandLineClient._(this.packagesPath, this.packageRoot, this.token);
 
-  factory CommandLineClient(
-      {String projectDirectory,
-      String packageRoot,
-      String token,
-      Map<String, String> environment}) {
-    if (projectDirectory == null) {
-      projectDirectory = p.current;
-    }
-
-    packageRoot = _calcPackageRoot(projectDirectory, packageRoot);
-
-    return new CommandLineClient._(projectDirectory, packageRoot, token);
+  factory CommandLineClient({String packageRoot, String packagesPath, String token, Map<String, String> environment}) {
+    return new CommandLineClient._(packagesPath, packageRoot, token);
   }
 
-  Future<CoverageResult<String>> getLcovResult(String testFile,
-      {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
+  Future<String> getLcovResult(String testFile, {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
     var collector =
-        new LcovCollector(packageRoot, processSystem: processSystem);
+        new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath, processSystem: processSystem);
     return collector.getLcovInformation(testFile, workers: workers);
   }
 
@@ -65,10 +54,13 @@ class CommandLineClient {
       int retry: 0,
       bool excludeTestFiles: false,
       bool printJson}) async {
-    var rawLcov = await getLcovResult(testFile,
-        workers: workers, processSystem: processSystem);
+    var rawLcov = await getLcovResult(testFile, workers: workers, processSystem: processSystem);
 
-    rawLcov.printSummary();
+    if (rawLcov == null) {
+      print(
+          "Nothing to collect: Connection to VM service timed out. Make sure your test file is free from errors: ${testFile}");
+      exit(0);
+    }
 
     return uploadToCoveralls(rawLcov,
         workers: workers,
@@ -81,8 +73,7 @@ class CommandLineClient {
         printJson: printJson);
   }
 
-  Future<CoverallsResult> convertAndUploadToCoveralls(
-      Directory containsVmReports,
+  Future<CoverallsResult> convertAndUploadToCoveralls(Directory containsVmReports,
       {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress,
@@ -92,10 +83,9 @@ class CommandLineClient {
       bool excludeTestFiles: false,
       bool printJson}) async {
     var collector =
-        new LcovCollector(packageRoot, processSystem: processSystem);
+        new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath, processSystem: processSystem);
 
-    var result = await collector.convertVmReportsToLcov(containsVmReports,
-        workers: workers);
+    var result = await collector.convertVmReportsToLcov(containsVmReports, workers: workers);
 
     return uploadToCoveralls(result,
         workers: workers,
@@ -107,7 +97,7 @@ class CommandLineClient {
         printJson: printJson);
   }
 
-  Future<CoverallsResult> uploadToCoveralls(CoverageResult coverageResult,
+  Future<CoverallsResult> uploadToCoveralls(String coverageResult,
       {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress,
@@ -116,21 +106,22 @@ class CommandLineClient {
       int retry: 0,
       bool excludeTestFiles: false,
       bool printJson}) async {
-    var lcov = LcovDocument.parse(coverageResult.result.toString());
+    var lcov = LcovDocument.parse(coverageResult);
 
     var serviceName = travis.getServiceName(Platform.environment);
     var serviceJobId = travis.getServiceJobId(Platform.environment);
 
-    var report = CoverallsReport.parse(token, lcov, projectDirectory,
-        excludeTestFiles: excludeTestFiles,
-        serviceName: serviceName,
-        serviceJobId: serviceJobId);
+    var report = CoverallsReport.parse(token, lcov, p.current,
+        excludeTestFiles: excludeTestFiles, serviceName: serviceName, serviceJobId: serviceJobId);
 
     if (printJson) {
       print(const JsonEncoder.withIndent('  ').convert(report));
     }
 
-    if (dryRun) return null;
+    if (dryRun) {
+      print("Dry run completed successfully.");
+      return null;
+    }
 
     var endpoint = new CoverallsEndpoint(coverallsAddress);
 
@@ -147,22 +138,7 @@ class CommandLineClient {
   }
 }
 
-String _calcPackageRoot(String packageDir, String packageRoot) {
-  assert(p.isAbsolute(packageDir));
-
-  if (packageRoot == null) {
-    packageRoot = 'packages';
-  }
-
-  if (p.isRelative(packageRoot)) {
-    packageRoot = p.join(packageDir, packageRoot);
-  }
-
-  return p.normalize(packageRoot);
-}
-
-Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
-    {int retry: 0}) async {
+Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString, {int retry: 0}) async {
   var currentRetryCount = 0;
   while (true) {
     try {
