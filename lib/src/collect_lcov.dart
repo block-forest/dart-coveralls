@@ -17,7 +17,8 @@ class LcovDocument {
 
   /// Parses a string representation of an lcov document
   static LcovDocument parse(String lcovDocument) {
-    var parts = lcovDocument.split("end_of_record\n")..removeWhere((str) => str.isEmpty);
+    var parts = lcovDocument.split("end_of_record\n")
+      ..removeWhere((str) => str.isEmpty);
     var lcovParts = parts.map(LcovPart.parse).toList();
     return new LcovDocument(lcovParts);
   }
@@ -38,7 +39,8 @@ class LcovPart {
 
     var end = lcovPart.indexOf("\nend_of_record");
     if (-1 == end) end = null; // If "end_of_record" is missing, take rest
-    var content = lcovPart.substring(firstLineEnd + 1, end); // Skip newline symbol
+    var content =
+        lcovPart.substring(firstLineEnd + 1, end); // Skip newline symbol
 
     return new LcovPart(heading, content);
   }
@@ -54,10 +56,17 @@ class LcovCollector {
   final String packagesPath;
   final ProcessSystem processSystem;
 
-  LcovCollector({this.packageRoot, this.packagesPath, this.processSystem: const ProcessSystem(), this.sdkRoot}) {}
+  LcovCollector(
+      {this.packageRoot,
+      this.packagesPath,
+      this.processSystem: const ProcessSystem(),
+      this.sdkRoot}) {}
 
-  Future<String> convertVmReportsToLcov(Directory directoryContainingVmReports, {int workers: 1}) async {
-    var reportFiles = await directoryContainingVmReports.list(recursive: false, followLinks: false).toList();
+  Future<String> convertVmReportsToLcov(Directory directoryContainingVmReports,
+      {int workers: 1}) async {
+    var reportFiles = await directoryContainingVmReports
+        .list(recursive: false, followLinks: false)
+        .toList();
 
     var hitmap = await parseCoverage(reportFiles as Iterable<File>, workers);
     return await _formatCoverageJson(hitmap);
@@ -69,7 +78,8 @@ class LcovCollector {
   /// This uses [workers] to parse the collected information.
   Future<String> getLcovInformation(String testFile, {int workers: 1}) async {
     if (!p.isAbsolute(testFile)) {
-      throw new ArgumentError.value(testFile, 'testFile', 'Must be an absolute path.');
+      throw new ArgumentError.value(
+          testFile, 'testFile', 'Must be an absolute path.');
     }
 
     var reportFile = await _getCoverageJson(testFile);
@@ -106,11 +116,12 @@ class LcovCollector {
     }
     dartArgs.add(testFile);
 
-    Process process = await processSystem.startProcess(Platform.executable, dartArgs);
+    Process process =
+        await processSystem.startProcess(Platform.executable, dartArgs);
     process.exitCode.then((exitCode) {
       if (exitCode < 0 && !terminated) {
-        throw new ProcessException(
-            Platform.executable, dartArgs, 'There was a critical error. Exit code: ${exitCode}', exitCode);
+        throw new ProcessException(Platform.executable, dartArgs,
+            'There was a critical error. Exit code: ${exitCode}', exitCode);
       }
     });
 
@@ -124,7 +135,8 @@ class LcovCollector {
     Uri host = await hostCompleter.future;
 
     try {
-      Map<String, dynamic> coverageResults = await collect(host, true, false, timeout: new Duration(seconds: 60));
+      Map<String, dynamic> coverageResults =
+          await collect(host, true, false, timeout: new Duration(seconds: 60));
       return coverageResults['coverage'];
     } catch (e) {
       print(e);

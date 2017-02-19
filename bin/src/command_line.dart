@@ -20,12 +20,14 @@ abstract class CommandLinePart {
 
   bool handleLogging(ArgResults res) {
     String logLevelStr = res['log-level'];
-    if (Level.LEVELS.where((l) => l.name == logLevelStr.toUpperCase()).length == 0) {
+    if (Level.LEVELS.where((l) => l.name == logLevelStr.toUpperCase()).length ==
+        0) {
       print("Invalid Log level: ${logLevelStr}");
       return false;
     }
 
-    Level logLevel = Level.LEVELS.firstWhere((level) => level.name.toLowerCase() == logLevelStr);
+    Level logLevel = Level.LEVELS
+        .firstWhere((level) => level.name.toLowerCase() == logLevelStr);
 
     if (res['debug']) {
       if (logLevel == Level.OFF) {
@@ -81,7 +83,8 @@ abstract class CommandLinePart {
     String type;
     if (res["package-root"] != null) {
       if (res["packages"] != null) {
-        print("You cannot use both --packages and --package-root options at the same time.");
+        print(
+            "You cannot use both --packages and --package-root options at the same time.");
         return null;
       }
       pRoot = new Directory(res["package-root"]);
@@ -110,7 +113,8 @@ abstract class CommandLinePart {
             'Specifies the path to the package resolution configuration file. This option cannot be used with --package-root.',
       )
       ..addOption("package-root",
-          help: 'Specifies where to find imported libraries. This option cannot be used with --packages.');
+          help:
+              'Specifies where to find imported libraries. This option cannot be used with --packages.');
   }
 
   Future parseAndExecute(List<String> args) => execute(parser.parse(args));
@@ -163,7 +167,8 @@ class CommandLineHub extends CommandLinePart {
 
   String get usage {
     int len = _getLongestNameLength();
-    return "Possible commands are: \n\n" + _parts.keys.map((info) => info.toString(len)).join("\n");
+    return "Possible commands are: \n\n" +
+        _parts.keys.map((info) => info.toString(len)).join("\n");
   }
 }
 
