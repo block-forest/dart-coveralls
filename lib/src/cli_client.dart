@@ -21,13 +21,20 @@ class CommandLineClient {
 
   CommandLineClient._(this.packagesPath, this.packageRoot, this.token);
 
-  factory CommandLineClient({String packageRoot, String packagesPath, String token, Map<String, String> environment}) {
+  factory CommandLineClient(
+      {String packageRoot,
+      String packagesPath,
+      String token,
+      Map<String, String> environment}) {
     return new CommandLineClient._(packagesPath, packageRoot, token);
   }
 
-  Future<String> getLcovResult(String testFile, {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
-    var collector =
-        new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath, processSystem: processSystem);
+  Future<String> getLcovResult(String testFile,
+      {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
+    var collector = new LcovCollector(
+        packageRoot: packageRoot,
+        packagesPath: packagesPath,
+        processSystem: processSystem);
     return collector.getLcovInformation(testFile, workers: workers);
   }
 
@@ -54,7 +61,8 @@ class CommandLineClient {
       int retry: 0,
       bool excludeTestFiles: false,
       bool printJson}) async {
-    var rawLcov = await getLcovResult(testFile, workers: workers, processSystem: processSystem);
+    var rawLcov = await getLcovResult(testFile,
+        workers: workers, processSystem: processSystem);
 
     if (rawLcov == null) {
       print(
@@ -73,7 +81,8 @@ class CommandLineClient {
         printJson: printJson);
   }
 
-  Future<CoverallsResult> convertAndUploadToCoveralls(Directory containsVmReports,
+  Future<CoverallsResult> convertAndUploadToCoveralls(
+      Directory containsVmReports,
       {int workers,
       ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress,
@@ -82,10 +91,13 @@ class CommandLineClient {
       int retry: 0,
       bool excludeTestFiles: false,
       bool printJson}) async {
-    var collector =
-        new LcovCollector(packageRoot: packageRoot, packagesPath: packagesPath, processSystem: processSystem);
+    var collector = new LcovCollector(
+        packageRoot: packageRoot,
+        packagesPath: packagesPath,
+        processSystem: processSystem);
 
-    var result = await collector.convertVmReportsToLcov(containsVmReports, workers: workers);
+    var result = await collector.convertVmReportsToLcov(containsVmReports,
+        workers: workers);
 
     return uploadToCoveralls(result,
         workers: workers,
@@ -112,7 +124,9 @@ class CommandLineClient {
     var serviceJobId = travis.getServiceJobId(Platform.environment);
 
     var report = CoverallsReport.parse(token, lcov, p.current,
-        excludeTestFiles: excludeTestFiles, serviceName: serviceName, serviceJobId: serviceJobId);
+        excludeTestFiles: excludeTestFiles,
+        serviceName: serviceName,
+        serviceJobId: serviceJobId);
 
     if (printJson) {
       print(const JsonEncoder.withIndent('  ').convert(report));
@@ -138,7 +152,8 @@ class CommandLineClient {
   }
 }
 
-Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString, {int retry: 0}) async {
+Future<CoverallsResult> _sendLoop(CoverallsEndpoint endpoint, String covString,
+    {int retry: 0}) async {
   var currentRetryCount = 0;
   while (true) {
     try {

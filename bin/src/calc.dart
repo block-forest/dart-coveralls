@@ -54,7 +54,8 @@ class CalcPart extends CommandLinePart {
 
 ArgParser _initializeParser() {
   ArgParser parser = new ArgParser(allowTrailingOptions: true)
-    ..addOption("workers", help: "Number of workers for parsing", defaultsTo: "1")
+    ..addOption("workers",
+        help: "Number of workers for parsing", defaultsTo: "1")
     ..addOption("output", help: "Output file path");
   return CommandLinePart.addCommonOptions(parser);
 }

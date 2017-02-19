@@ -18,7 +18,8 @@ class UploadPart extends CommandLinePart {
       return null;
     }
 
-    if (res.rest.length != 1) return print("Please specify a directory containing VM coverage files");
+    if (res.rest.length != 1)
+      return print("Please specify a directory containing VM coverage files");
 
     var directory = new Directory(res.rest.single);
     var dryRun = res["dry-run"];
@@ -29,8 +30,10 @@ class UploadPart extends CommandLinePart {
     var excludeTestFiles = res["exclude-test-files"];
     var printJson = res["print-json"];
 
-    if (!directory.existsSync()) return print("Directory containing VM coverage files does not exist");
-    log.info(() => "Directory containing VM coverage files is ${directory.absolute.path}");
+    if (!directory.existsSync())
+      return print("Directory containing VM coverage files does not exist");
+    log.info(() =>
+        "Directory containing VM coverage files is ${directory.absolute.path}");
 
     var errorFunction = (e, Chain chain) {
       log.severe('Exception', e, chain);
@@ -56,20 +59,31 @@ class UploadPart extends CommandLinePart {
 
 ArgParser _initializeParser() {
   ArgParser parser = new ArgParser(allowTrailingOptions: true)
-    ..addOption("token", help: "Token for coveralls", defaultsTo: Platform.environment["test"])
+    ..addOption("token",
+        help: "Token for coveralls", defaultsTo: Platform.environment["test"])
     ..addFlag("debug", help: "Prints debug information", negatable: false)
     ..addOption("retry", help: "Number of retries", defaultsTo: "10")
-    ..addFlag("dry-run", help: "If this flag is enabled, data won't be sent to coveralls", negatable: false)
+    ..addFlag("dry-run",
+        help: "If this flag is enabled, data won't be sent to coveralls",
+        negatable: false)
     ..addFlag("throw-on-connectivity-error",
-        help: "Should this throw an exception, if the upload to coveralls fails?", negatable: false, abbr: "C")
+        help:
+            "Should this throw an exception, if the upload to coveralls fails?",
+        negatable: false,
+        abbr: "C")
     ..addFlag("throw-on-error",
         help: "Should this throw if "
             "an error in the dart_coveralls implementation happens?",
         negatable: false,
         abbr: "E")
     ..addFlag("exclude-test-files",
-        abbr: "T", help: "Should test files be included in the coveralls report?", negatable: false)
-    ..addFlag("print-json", abbr: 'p', help: "Pretty-print the json that will be sent to coveralls.", negatable: false);
+        abbr: "T",
+        help: "Should test files be included in the coveralls report?",
+        negatable: false)
+    ..addFlag("print-json",
+        abbr: 'p',
+        help: "Pretty-print the json that will be sent to coveralls.",
+        negatable: false);
 
   return CommandLinePart.addCommonOptions(parser);
 }
