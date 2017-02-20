@@ -136,7 +136,7 @@ class LcovCollector {
 
     try {
       Map<String, dynamic> coverageResults =
-          await collect(host, true, false, timeout: new Duration(seconds: 60));
+          await collect(host, true, true, timeout: new Duration(seconds: 60));
       return coverageResults['coverage'];
     } catch (e) {
       print(e);
