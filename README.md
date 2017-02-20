@@ -1,10 +1,7 @@
 dart-coveralls
 ==============
-> This is not under active development anymore. No fixes or enhancements will be done.
-> If one is willing to maintain and develop this, please contact me to talk about the
-> handover.
 
-[![Build Status](https://travis-ci.org/duse-io/dart-coveralls.svg?branch=master)](https://travis-ci.org/duse-io/dart-coveralls) [![Coverage Status](https://coveralls.io/repos/duse-io/dart-coveralls/badge.svg)](https://coveralls.io/r/duse-io/dart-coveralls)
+[![Build Status](https://travis-ci.org/block-forest/dart-coveralls.svg?branch=master)](https://travis-ci.org/block-forest/dart-coveralls) [![Coverage Status](https://coveralls.io/repos/block-forest/dart-coveralls/badge.svg)](https://coveralls.io/r/block-forest/dart-coveralls)
 
 Calculate coverage of your dart scripts, format it to LCOV and send it to
 [coveralls.io](https://coveralls.io/).
