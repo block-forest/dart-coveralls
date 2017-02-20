@@ -35,7 +35,7 @@ class CoverallsEndpoint {
     var msg = response.body;
 
     if (response.statusCode != 200) {
-      throw new Exception("${response.reasonPhrase}\n$msg");
+      throw new Exception("${response.reasonPhrase}");
     }
     log.info("200 OK");
     log.info("Response:\n$msg");
