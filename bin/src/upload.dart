@@ -23,7 +23,6 @@ class UploadPart extends CommandLinePart {
 
     var directory = new Directory(res.rest.single);
     var dryRun = res["dry-run"];
-    var workers = int.parse(res["workers"]);
     var retry = int.parse(res["retry"]);
     var throwOnError = res["throw-on-error"];
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
@@ -47,7 +46,6 @@ class UploadPart extends CommandLinePart {
       }
 
       await commandLineClient.convertAndUploadToCoveralls(directory.absolute,
-          workers: workers,
           dryRun: dryRun,
           retry: retry,
           throwOnConnectivityError: throwOnConnectivityError,
