@@ -16,12 +16,11 @@ To activate the program for global use, run `pub global activate dart_coveralls`
 This command calculates the coverage of a given package. Use the tool like this:
 
 ```
-dart_coveralls calc [--workers, --output, --package-root] test.dart
+dart_coveralls calc [--output, --package-root] test.dart
 # or
-dart_coveralls calc [--workers, --output, --packages] test.dart
+dart_coveralls calc [--output, --packages] test.dart
 ```
 
-* `--workers`: The number of workers used to parse LCOV information
 * `--output`: The output file path, if not given stdout
 * `--packages`: Specifies the path to the package resolution configuration file. 
    This option cannot be used with --package-root. Defaults to ".packages".
@@ -39,8 +38,6 @@ dart_coveralls report <options> <test file>
 
 * `--help` – Displays all options
 * `--token` –Token for coveralls
-* `--workers` – Number of workers for parsing
-  (defaults to "1")
 * `--packages`: Specifies the path to the package resolution configuration file. 
    This option cannot be used with --package-root. Defaults to ".packages".
 * `--package-root`: Specifies where to find imported libraries. 
@@ -67,8 +64,6 @@ dart_coveralls upload <options> <directory containing coverage reports from the 
 
 * `--help` – Displays all options
 * `--token` –Token for coveralls
-* `--workers` – Number of workers for parsing
-  (defaults to "1")
 * `--packages`: Specifies the path to the package resolution configuration file. 
    This option cannot be used with --package-root. Defaults to ".packages".
 * `--package-root`: Specifies where to find imported libraries. 
