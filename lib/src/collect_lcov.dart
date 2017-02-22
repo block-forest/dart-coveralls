@@ -62,21 +62,20 @@ class LcovCollector {
       this.processSystem: const ProcessSystem(),
       this.sdkRoot}) {}
 
-  Future<String> convertVmReportsToLcov(Directory directoryContainingVmReports,
-      {int workers: 1}) async {
+  Future<String> convertVmReportsToLcov(
+      Directory directoryContainingVmReports) async {
     var reportFiles = await directoryContainingVmReports
         .list(recursive: false, followLinks: false)
         .toList();
 
-    var hitmap = await parseCoverage(reportFiles as Iterable<File>, workers);
+    var hitmap = await parseCoverage(reportFiles as Iterable<File>, null);
     return await _formatCoverageJson(hitmap);
   }
 
   /// Returns an LCOV string of the tested [File].
   ///
   /// Calculates and returns LCOV information of the tested [File].
-  /// This uses [workers] to parse the collected information.
-  Future<String> getLcovInformation(String testFile, {int workers: 1}) async {
+  Future<String> getLcovInformation(String testFile) async {
     if (!p.isAbsolute(testFile)) {
       throw new ArgumentError.value(
           testFile, 'testFile', 'Must be an absolute path.');

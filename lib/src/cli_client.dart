@@ -30,12 +30,12 @@ class CommandLineClient {
   }
 
   Future<String> getLcovResult(String testFile,
-      {int workers, ProcessSystem processSystem: const ProcessSystem()}) {
+      {ProcessSystem processSystem: const ProcessSystem()}) {
     var collector = new LcovCollector(
         packageRoot: packageRoot,
         packagesPath: packagesPath,
         processSystem: processSystem);
-    return collector.getLcovInformation(testFile, workers: workers);
+    return collector.getLcovInformation(testFile);
   }
 
   /// Returns [candidate] if not `null`, otherwise environment's `REPO_TOKEN` or
@@ -53,25 +53,22 @@ class CommandLineClient {
   }
 
   Future<CoverallsResult> reportToCoveralls(String testFile,
-      {int workers,
-      ProcessSystem processSystem: const ProcessSystem(),
+      {ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress,
       bool dryRun: false,
       bool throwOnConnectivityError: false,
       int retry: 0,
       bool excludeTestFiles: false,
       bool printJson}) async {
-    var rawLcov = await getLcovResult(testFile,
-        workers: workers, processSystem: processSystem);
+    var rawLcov = await getLcovResult(testFile, processSystem: processSystem);
 
     if (rawLcov == null) {
-      print(
-          "Nothing to collect: Connection to VM service timed out. Make sure your test file is free from errors: ${testFile}");
+      print("Nothing to collect: Connection to VM service timed out. "
+          "Make sure your test file is free from errors: ${testFile}");
       exit(0);
     }
 
     return uploadToCoveralls(rawLcov,
-        workers: workers,
         processSystem: processSystem,
         coverallsAddress: coverallsAddress,
         dryRun: dryRun,
@@ -83,8 +80,7 @@ class CommandLineClient {
 
   Future<CoverallsResult> convertAndUploadToCoveralls(
       Directory containsVmReports,
-      {int workers,
-      ProcessSystem processSystem: const ProcessSystem(),
+      {ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress,
       bool dryRun: false,
       bool throwOnConnectivityError: false,
@@ -96,11 +92,9 @@ class CommandLineClient {
         packagesPath: packagesPath,
         processSystem: processSystem);
 
-    var result = await collector.convertVmReportsToLcov(containsVmReports,
-        workers: workers);
+    var result = await collector.convertVmReportsToLcov(containsVmReports);
 
     return uploadToCoveralls(result,
-        workers: workers,
         processSystem: processSystem,
         dryRun: dryRun,
         throwOnConnectivityError: throwOnConnectivityError,
@@ -110,8 +104,7 @@ class CommandLineClient {
   }
 
   Future<CoverallsResult> uploadToCoveralls(String coverageResult,
-      {int workers,
-      ProcessSystem processSystem: const ProcessSystem(),
+      {ProcessSystem processSystem: const ProcessSystem(),
       String coverallsAddress,
       bool dryRun: false,
       bool throwOnConnectivityError: false,

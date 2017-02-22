@@ -37,12 +37,11 @@ class CalcPart extends CommandLinePart {
       return;
     }
 
-    var workers = int.parse(res["workers"]);
     var collector = new LcovCollector(
         packageRoot: pRoot is Directory ? pRoot.absolute.path : null,
         packagesPath: pRoot is File ? pRoot.absolute.path : null);
 
-    var r = await collector.getLcovInformation(file, workers: workers);
+    var r = await collector.getLcovInformation(file);
 
     if (res["output"] != null) {
       await new File(res["output"]).writeAsString(r);
@@ -54,8 +53,8 @@ class CalcPart extends CommandLinePart {
 
 ArgParser _initializeParser() {
   ArgParser parser = new ArgParser(allowTrailingOptions: true)
-    ..addOption("workers",
-        help: "Number of workers for parsing", defaultsTo: "1")
+    ..addOption("workers", help: "Ignored", defaultsTo: "1")
     ..addOption("output", help: "Output file path");
+
   return CommandLinePart.addCommonOptions(parser);
 }
