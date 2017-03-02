@@ -5,6 +5,7 @@ import 'dart:io' show Directory, File, FileSystemEntity;
 import 'package:mockable_filesystem/filesystem.dart';
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
+import 'package:crypto/crypto.dart';
 
 import 'collect_lcov.dart';
 import 'git_data.dart';
@@ -115,24 +116,25 @@ class SourceFileReport {
 
   Map toJson() => {
         "name": sourceFile.name,
-        "source": sourceFile.source,
+        "source_digest": sourceFile.sourceDigest,
         "coverage": coverage.values.map((lv) => lv.lineCount).toList()
       };
 }
 
 class SourceFile {
   final String name;
-  final String source;
+  final String sourceDigest;
 
-  SourceFile(this.name, this.source);
+  SourceFile(this.name, List<int> bytes)
+      : sourceDigest = md5.convert(bytes).toString();
 
   static SourceFile parse(String heading, String packageDir,
       {FileSystem fileSystem: const FileSystem()}) {
     var path = heading.split(":").last;
     var name = resolveName(path, packageDir, fileSystem: fileSystem);
     var sourceFile = getSourceFile(path, packageDir, fileSystem: fileSystem);
-    var source = sourceFile.readAsStringSync();
-    return new SourceFile(name, source);
+    var bytes = sourceFile.readAsBytesSync();
+    return new SourceFile(name, bytes);
   }
 
   static String resolveName(String path, String projectDirectory,
