@@ -16,10 +16,10 @@
 * Introduced a timeout of 60 seconds in cases where the VM doesn't respond.
   This should only be the case if the given test file contains serious syntax errors.
 
-* #63 `--workers` is now ignored and will be removed in a future release.
+* dart-coveralls#63 `--workers` is ignored and will be removed in a future release.
 
-* #71 Coverage is now submitted using coveralls `source_digest` option instead
-  of `source`.  This greatly reduces coverals report upload sizes.
+* dart-coveralls#71 Now submitting to coveralls using the `source_digest` option
+  instead of `source`.  This greatly reduces coveralls report upload sizes.
 
 ### 0.4.0
 
