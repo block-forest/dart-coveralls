@@ -1,5 +1,7 @@
 library dart_coveralls.test.coveralls_entities;
 
+import 'dart:convert';
+
 import 'package:dart_coveralls/dart_coveralls.dart';
 import 'package:mock/mock.dart';
 import 'package:test/test.dart';
@@ -161,7 +163,7 @@ void main() {
 
   group('SourceFileReport', () {
     test('toJson', () {
-      var file = new SourceFile('a', 'b');
+      var file = new SourceFile('a', UTF8.encode('b'));
 
       var str = "DA:3,3\nDA:4,5\nDA:6,3";
       var coverage = Coverage.parse(str);
@@ -172,8 +174,8 @@ void main() {
           report.toJson(),
           equals({
             'name': 'a',
-            'source': 'b',
-            "coverage": [null, null, 3, 5, null, 3]
+            'source_digest': '92eb5ffee6ae2fec3ad71c777531578f',
+            'coverage': [null, null, 3, 5, null, 3]
           }));
     });
   });
