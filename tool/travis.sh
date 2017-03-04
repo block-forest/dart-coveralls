@@ -13,6 +13,8 @@ if [ "$COVERALLS_TOKEN" ] && [ "$TRAVIS_DART_VERSION" = "stable" ]; then
   dart bin/dart_coveralls.dart report \
     --retry 2 \
     --exclude-test-files \
+    --throw-on-error \
+    --throw-on-connectivity-error \
     --debug \
     test/test_all.dart
   echo "Coverage complete."
