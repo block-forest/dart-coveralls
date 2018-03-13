@@ -4,7 +4,7 @@ import 'dart:io' show ProcessResult;
 
 import 'package:dart_coveralls/dart_coveralls.dart';
 import 'package:file/file.dart';
-import 'package:mock/mock.dart';
+import 'package:mockito/mockito.dart';
 
 @proxy
 class FileSystemMock extends Mock implements FileSystem {}
