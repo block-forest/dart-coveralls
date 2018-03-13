@@ -65,7 +65,7 @@ class PackageDartFiles {
   PackageDartFiles(this.testFiles, this.implementationFiles);
 
   factory PackageDartFiles.from(String projectDirectory) {
-    var dir = new LocalFileSystem().directory(projectDirectory);
+    var dir = const LocalFileSystem().directory(projectDirectory);
     var testFiles = _getTestFiles(dir).toList();
     var implementationFiles = _getImplementationFiles(dir).toList();
 
@@ -247,7 +247,7 @@ class CoverallsReport {
   static CoverallsReport parse(
       String repoToken, LcovDocument lcov, String projectDirectory,
       {String serviceName, String serviceJobId, bool excludeTestFiles: false}) {
-    var gitData = GitData.getGitData(new LocalFileSystem().directory(projectDirectory));
+    var gitData = GitData.getGitData(const LocalFileSystem().directory(projectDirectory));
     var reports = SourceFileReports.parse(lcov, projectDirectory,
         excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData,
