@@ -6,7 +6,7 @@ description: |-
   to LCOV and send it to coveralls
 homepage: https://github.com/block-forest/dart-coveralls
 environment:
-  sdk: ">=1.16.0 <2.0.0"
+  sdk: ">=2.0.0-dev.16.0 <2.0.0"
 dependencies:
   args: '>=0.12.1 <2.0.0'
   coverage: ^0.10.0
