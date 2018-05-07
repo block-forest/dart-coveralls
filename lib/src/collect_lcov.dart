@@ -55,12 +55,14 @@ class LcovCollector {
   final String packageRoot;
   final String packagesPath;
   final ProcessSystem processSystem;
+  final bool previewDart2;
 
   LcovCollector(
       {this.packageRoot,
       this.packagesPath,
       this.processSystem: const ProcessSystem(),
-      this.sdkRoot}) {}
+      this.sdkRoot,
+      this.previewDart2: false}) {}
 
   Future<String> convertVmReportsToLcov(
       Directory directoryContainingVmReports) async {
@@ -112,6 +114,9 @@ class LcovCollector {
       dartArgs.add("--package-root=${packageRoot}");
     } else {
       dartArgs.add("--packages=${packagesPath}");
+    }
+    if (previewDart2) {
+      dartArgs.add("--preview-dart-2");
     }
     dartArgs.add(testFile);
 
