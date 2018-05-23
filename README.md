@@ -7,6 +7,9 @@ dart-coveralls
 Calculate coverage of your dart scripts, format it to LCOV and send it to
 [coveralls.io](https://coveralls.io/).
 
+
+*NOTE:* as of version 0.6.0 `dart-coveralls`, requires a Dart 2 SDK. 
+
 ### Usage
 This package consists of a single command line tool `dart_coveralls` with
 the three commands `calc`, `report`, `upload`.
