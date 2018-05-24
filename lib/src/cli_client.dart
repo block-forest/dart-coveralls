@@ -137,7 +137,7 @@ class CommandLineClient {
     var endpoint = new CoverallsEndpoint(coverallsAddress);
 
     try {
-      var encoded = JSON.encode(report);
+      var encoded = json.encode(report);
       return _sendLoop(endpoint, encoded, retry: retry);
     } catch (e, stack) {
       if (throwOnConnectivityError) rethrow;

@@ -1,7 +1,7 @@
 library dart_coveralls.coveralls_endpoint;
 
 import 'dart:async' show Future;
-import 'dart:convert' show JSON;
+import 'dart:convert' show json;
 
 import 'package:http/http.dart' show MultipartRequest, MultipartFile, Response;
 
@@ -18,16 +18,16 @@ class CoverallsEndpoint {
             ? coverallsAddress
             : Uri.parse(COVERALLS_ADDRESS);
 
-  MultipartRequest _getCoverallsRequest(String json) {
+  MultipartRequest _getCoverallsRequest(String jsonString) {
     var req = new MultipartRequest("POST", coverallsAddress);
     req.files.add(
-        new MultipartFile.fromString("json_file", json, filename: "json_file"));
+        new MultipartFile.fromString("json_file", jsonString, filename: "json_file"));
     return req;
   }
 
-  Future<CoverallsResult> sendToCoveralls(String json) async {
-    var req = _getCoverallsRequest(json);
-    log.info('Sending coverage information. JSON length: ${json.length}');
+  Future<CoverallsResult> sendToCoveralls(String jsonString) async {
+    var req = _getCoverallsRequest(jsonString);
+    log.info('Sending coverage information. JSON length: ${jsonString.length}');
     var streamedResponse = await req.send();
     Response response = await Response.fromStream(streamedResponse);
     log.info('Coverage information sent.');
@@ -40,7 +40,7 @@ class CoverallsEndpoint {
     log.info("200 OK");
     log.info("Response:\n$msg");
 
-    var resultJson = JSON.decode(msg);
+    var resultJson = json.decode(msg);
     return new CoverallsResult.fromJson(resultJson);
   }
 }
