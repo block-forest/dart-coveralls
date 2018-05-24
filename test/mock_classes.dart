@@ -1,10 +1,10 @@
 library dart_coveralls.test.mocks;
 
-import 'dart:io';
+import 'dart:io' show ProcessResult;
 
-import 'package:mockable_filesystem/filesystem.dart';
 import 'package:dart_coveralls/dart_coveralls.dart';
-import 'package:mock/mock.dart';
+import 'package:file/file.dart';
+import 'package:mockito/mockito.dart';
 
 @proxy
 class FileSystemMock extends Mock implements FileSystem {}

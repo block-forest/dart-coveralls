@@ -1,6 +1,8 @@
 library dart_coveralls.git_data;
 
-import 'dart:io' show Directory, ProcessException, Platform;
+import 'dart:io' show ProcessException, Platform;
+
+import 'package:file/file.dart';
 
 import 'log.dart';
 import 'services/travis.dart' as travis;

@@ -1,8 +1,7 @@
 library dart_coveralls.coveralls_entities;
 
-import 'dart:io' show Directory, File, FileSystemEntity;
-
-import 'package:mockable_filesystem/filesystem.dart';
+import 'package:file/file.dart';
+import 'package:file/local.dart' show LocalFileSystem;
 import 'package:path/path.dart' as p;
 import 'package:yaml/yaml.dart';
 import 'package:crypto/crypto.dart';
@@ -20,11 +19,11 @@ class PackageFilter {
       {this.excludeTestFiles: false});
 
   PackageFilter.from(String projectDirectory,
-      {this.excludeTestFiles: false, FileSystem fileSystem: const FileSystem()})
+      {this.excludeTestFiles: false, FileSystem fileSystem: const LocalFileSystem()})
       : packageName = getPackageName(projectDirectory, fileSystem),
         dartFiles = new PackageDartFiles.from(projectDirectory);
 
-  bool accept(String fileName, [FileSystem fileSystem = const FileSystem()]) {
+  bool accept(String fileName, [FileSystem fileSystem = const LocalFileSystem()]) {
     log.info("ANALYZING $fileName");
 
     if (fileName.startsWith(packageName)) {
@@ -32,7 +31,7 @@ class PackageFilter {
       return true;
     }
 
-    var file = fileSystem.getFile(fileName);
+    var file = fileSystem.file(fileName);
     log.info(
         () => "  implementation file? ${dartFiles.isImplementationFile(file)}");
     log.info(() => "  test file? ${dartFiles.isTestFile(file)}");
@@ -50,9 +49,9 @@ class PackageFilter {
   /// This searches [projectDirectory] for a yaml file, which it then
   /// parses for the top level attribute name, which it then returns.
   static String getPackageName(String projectDirectory,
-      [FileSystem fileSystem = const FileSystem()]) {
+      [FileSystem fileSystem = const LocalFileSystem()]) {
     var pubspecFile =
-        fileSystem.getFile(p.join(projectDirectory, "pubspec.yaml"));
+        fileSystem.file(p.join(projectDirectory, "pubspec.yaml"));
     var pubspecContent = pubspecFile.readAsStringSync();
     var yaml = loadYaml(pubspecContent);
     return yaml["name"];
@@ -66,7 +65,7 @@ class PackageDartFiles {
   PackageDartFiles(this.testFiles, this.implementationFiles);
 
   factory PackageDartFiles.from(String projectDirectory) {
-    var dir = new Directory(projectDirectory);
+    var dir = const LocalFileSystem().directory(projectDirectory);
     var testFiles = _getTestFiles(dir).toList();
     var implementationFiles = _getImplementationFiles(dir).toList();
 
@@ -129,7 +128,7 @@ class SourceFile {
       : sourceDigest = md5.convert(bytes).toString();
 
   static SourceFile parse(String heading, String packageDir,
-      {FileSystem fileSystem: const FileSystem()}) {
+      {FileSystem fileSystem: const LocalFileSystem()}) {
     var path = heading.split(":").last;
     var name = resolveName(path, packageDir, fileSystem: fileSystem);
     var sourceFile = getSourceFile(path, packageDir, fileSystem: fileSystem);
@@ -138,25 +137,25 @@ class SourceFile {
   }
 
   static String resolveName(String path, String projectDirectory,
-      {FileSystem fileSystem: const FileSystem()}) {
-    var file = fileSystem.getFile(path);
+      {FileSystem fileSystem: const LocalFileSystem()}) {
+    var file = fileSystem.file(path);
     if (!file.isAbsolute) {
       var packagePath = p.join(projectDirectory, 'packages', path);
-      file = fileSystem.getFile(packagePath);
-      file = fileSystem.getFile(file.resolveSymbolicLinksSync());
+      file = fileSystem.file(packagePath);
+      file = fileSystem.file(file.resolveSymbolicLinksSync());
     }
 
     return p.relative(file.path, from: projectDirectory);
   }
 
   static File getSourceFile(String path, String packageDir,
-      {FileSystem fileSystem: const FileSystem()}) {
-    var file = fileSystem.getFile(path);
+      {FileSystem fileSystem: const LocalFileSystem()}) {
+    var file = fileSystem.file(path);
     if (file.existsSync()) {
       return file.absolute;
     }
-    file = fileSystem.getFile(p.join(packageDir, 'packages', path));
-    file = fileSystem.getFile(file.resolveSymbolicLinksSync());
+    file = fileSystem.file(p.join(packageDir, 'packages', path));
+    file = fileSystem.file(file.resolveSymbolicLinksSync());
     return file.absolute;
   }
 }
@@ -248,7 +247,7 @@ class CoverallsReport {
   static CoverallsReport parse(
       String repoToken, LcovDocument lcov, String projectDirectory,
       {String serviceName, String serviceJobId, bool excludeTestFiles: false}) {
-    var gitData = GitData.getGitData(new Directory(projectDirectory));
+    var gitData = GitData.getGitData(const LocalFileSystem().directory(projectDirectory));
     var reports = SourceFileReports.parse(lcov, projectDirectory,
         excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData,

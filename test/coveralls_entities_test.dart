@@ -3,7 +3,7 @@ library dart_coveralls.test.coveralls_entities;
 import 'dart:convert';
 
 import 'package:dart_coveralls/dart_coveralls.dart';
-import 'package:mock/mock.dart';
+import 'package:mockito/mockito.dart';
 import 'package:test/test.dart';
 
 import 'mock_classes.dart';
@@ -13,15 +13,13 @@ void _expectLineValue(LineValue lv, int lineNumber, int lineCount) {
   expect(lv.lineCount, equals(lineCount));
 }
 
-FileMock _absoluteMock(String path, String absolutePath) {
+FileMock _absoluteMock(String pathString, String absolutePathString) {
   var mock = new FileMock();
   var absolute = new FileMock();
-  absolute
-    ..when(callsTo("get absolute")).alwaysReturn(absolute)
-    ..when(callsTo("get path")).alwaysReturn(absolutePath);
-  mock
-    ..when(callsTo("get path")).alwaysReturn(path)
-    ..when(callsTo("get absolute")).alwaysReturn(absolute);
+  when(absolute.absolute).thenReturn(absolute);
+  when(absolute.path).thenReturn(absolutePathString);
+  when(mock.path).thenReturn(pathString);
+  when(mock.absolute).thenReturn(absolute);
   return mock;
 }
 
@@ -67,23 +65,25 @@ void main() {
       var f3 = _absoluteMock("nottest.dart", "/root/nottest.dart");
 
       expect(PackageDartFiles.sameAbsolutePath(f1, f2), isTrue);
-      f1.calls("get absolute").verify(happenedOnce);
-      f2.calls("get absolute").verify(happenedOnce);
+      verify(f1.absolute).called(1);
+      verify(f2.absolute).called(1);
       expect(PackageDartFiles.sameAbsolutePath(f1, f3), isFalse);
     });
 
     test("isTestDirectory", () {
-      var testDir = new DirectoryMock()
-        ..when(callsTo("get path")).thenReturn("test");
-      var notTestDir = new DirectoryMock()
-        ..when(callsTo("get path")).thenReturn("nottest");
+      var testDir = new DirectoryMock();
+      when(testDir.path).thenReturn("test");
+
+      var notTestDir = new DirectoryMock();
+      when(notTestDir.path).thenReturn("nottest");
+
       var fileMock = new FileMock();
 
       expect(PackageDartFiles.isTestDirectory(testDir), isTrue);
       expect(PackageDartFiles.isTestDirectory(notTestDir), isFalse);
       expect(PackageDartFiles.isTestDirectory(fileMock), isFalse);
-      testDir.calls("get path").verify(happenedOnce);
-      notTestDir.calls("get path").verify(happenedOnce);
+      verify(testDir.path).called(1);
+      verify(notTestDir.path).called(1);
     });
   });
 
@@ -91,19 +91,13 @@ void main() {
     test("getPackageName", () {
       var fileSystem = new FileSystemMock();
       var fileMock = new FileMock();
-      fileMock
-          .when(callsTo("readAsStringSync"))
-          .thenReturn("name: dart_coveralls");
-      fileSystem
-          .when(callsTo("getFile", "./pubspec.yaml"))
-          .thenReturn(fileMock);
+      when(fileMock.readAsStringSync()).thenReturn("name: dart_coveralls");
+      when(fileSystem.file("./pubspec.yaml")).thenReturn(fileMock);
 
       var name = PackageFilter.getPackageName('.', fileSystem);
       expect(name, equals("dart_coveralls"));
-      fileSystem
-          .getLogs(callsTo("getFile", "./pubspec.yaml"))
-          .verify(happenedOnce);
-      fileMock.getLogs(callsTo("readAsStringSync")).verify(happenedOnce);
+      verify(fileSystem.file("./pubspec.yaml")).called(1);
+      verify(fileMock.readAsStringSync()).called(1);
     });
 
     test("accept", () {
@@ -118,11 +112,8 @@ void main() {
             "/home/user/dart/dart_coveralls/lib/program.dart")
       ];
 
-      var fsMock = new FileSystemMock()
-        ..when(callsTo(
-                "getFile", "/home/user/dart/dart_coveralls/test/test.dart"))
-            .alwaysReturn(testFiles.first);
-
+      var fsMock = new FileSystemMock();
+      when(fsMock.file("/home/user/dart/dart_coveralls/test/test.dart")).thenReturn(testFiles.first);
       var packageFilter = new PackageFilter(
           "dart_coveralls", new PackageDartFiles(testFiles, implFiles));
       var noTestFilter = new PackageFilter(
@@ -200,9 +191,9 @@ void main() {
         var fileMock = new FileMock();
         var fileSystem = new FileSystemMock();
 
-        fileMock.when(callsTo("existsSync")).thenReturn(true);
-        fileMock.when(callsTo("get absolute")).thenReturn(fileMock);
-        fileSystem.when(callsTo("getFile", "test.file")).thenReturn(fileMock);
+        when(fileMock.existsSync()).thenReturn(true);
+        when(fileMock.absolute).thenReturn(fileMock);
+        when(fileSystem.file("test.file")).thenReturn(fileMock);
         var file =
             SourceFile.getSourceFile("test.file", '.', fileSystem: fileSystem);
 
@@ -215,21 +206,13 @@ void main() {
         var dirMock = new DirectoryMock();
         var resolvedFile = new FileMock();
 
-        fileMock.when(callsTo("existsSync")).thenReturn(false);
-        dirMock.when(callsTo("get path")).thenReturn(".");
-        fileSystem
-            .when(callsTo("getFile", "dart_coveralls/test.file"))
-            .thenReturn(fileMock);
-        fileSystem
-            .when(callsTo("getFile", "./packages/dart_coveralls/test.file"))
-            .thenReturn(fileMock);
-        fileMock
-            .when(callsTo("resolveSymbolicLinksSync"))
-            .thenReturn("resolvedFile.dart");
-        fileSystem
-            .when(callsTo("getFile", "resolvedFile.dart"))
-            .thenReturn(resolvedFile);
-        resolvedFile.when(callsTo("get absolute")).thenReturn(resolvedFile);
+        when(fileMock.existsSync()).thenReturn(false);
+        when(dirMock.path).thenReturn(".");
+        when(fileSystem.file("dart_coveralls/test.file")).thenReturn(fileMock);
+        when(fileSystem.file("./packages/dart_coveralls/test.file")).thenReturn(fileMock);
+        when(fileMock.resolveSymbolicLinksSync()).thenReturn("resolvedFile.dart");
+        when(fileSystem.file("resolvedFile.dart")).thenReturn(resolvedFile);
+        when(resolvedFile.absolute).thenReturn(resolvedFile);
 
         var file = SourceFile.getSourceFile("dart_coveralls/test.file", '.',
             fileSystem: fileSystem);

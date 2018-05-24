@@ -1,6 +1,6 @@
 # Don’t commit the following items created by pub.
 .buildlog
-.pub/
+.dart_tool/
 build/
 packages
 .packages
