@@ -1,7 +1,3 @@
-### 0.6.0+1
-
-* Updated use of deprected Dart core constants.
-
 ### 0.6.0
 
 * Migrated to Dart 2.0.
