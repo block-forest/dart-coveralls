@@ -1,12 +1,12 @@
 name: dart_coveralls
-version: 0.6.0
+version: 0.6.0+1
 author: Axel Christ <adracus@gmail.com>
 description: |-
   Pub package to calculate coverage, format it
   to LCOV and send it to coveralls
 homepage: https://github.com/block-forest/dart-coveralls
 environment:
-  sdk: ">=2.0.0-dev.16.0 <2.0.0"
+  sdk: ">=2.0.0-dev.55.0 <2.0.0"
 dependencies:
   args: '>=0.12.1 <2.0.0'
   coverage: ^0.10.0
