@@ -1,3 +1,11 @@
+### 0.6.0+1
+
+* Updated use of deprected Dart core constants.
+
+### 0.6.0
+
+* Migrated to Dart 2.0.
+
 ### 0.5.0
 
 * Support the latest `coverage` `0.9.0` series releases.
