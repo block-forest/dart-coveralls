@@ -154,7 +154,7 @@ void main() {
 
   group('SourceFileReport', () {
     test('toJson', () {
-      var file = new SourceFile('a', UTF8.encode('b'));
+      var file = new SourceFile('a', utf8.encode('b'));
 
       var str = "DA:3,3\nDA:4,5\nDA:6,3";
       var coverage = Coverage.parse(str);

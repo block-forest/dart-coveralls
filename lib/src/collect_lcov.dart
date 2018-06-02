@@ -2,7 +2,7 @@ library dart_coveralls.lcov;
 
 import "dart:async" show Completer, Future;
 import "dart:io";
-import "dart:convert" show UTF8;
+import "dart:convert" show utf8;
 
 import "package:coverage/coverage.dart";
 import "package:coverage/src/util.dart" as util;
@@ -130,7 +130,7 @@ class LcovCollector {
     });
 
     Completer<Uri> hostCompleter = new Completer<Uri>();
-    process.stdout.transform(UTF8.decoder).listen((data) {
+    process.stdout.transform(utf8.decoder).listen((data) {
       Uri uri = util.extractObservatoryUri(data);
       if (uri != null) {
         hostCompleter.complete(uri);
