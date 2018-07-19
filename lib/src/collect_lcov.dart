@@ -88,7 +88,7 @@ class LcovCollector {
       return null;
     }
 
-    Map<String, dynamic> hitmap = {};
+    Map<String, Map<int, int>> hitmap = {};
     mergeHitmaps(createHitmap(reportFile), hitmap);
     return await _formatCoverageJson(hitmap);
   }
