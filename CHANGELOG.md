@@ -1,3 +1,8 @@
+### 0.6.0+2
+
+* Dart SDK constraint updated to <3.0.0.
+* Package dependency updates.
+
 ### 0.6.0
 
 * Migrated to Dart 2.0.
@@ -5,7 +10,7 @@
 ### 0.5.0
 
 * Support the latest `coverage` `0.9.0` series releases.
- 
+
 * Support for breaking changes introduced with Dart v1.22.0.
 
 * Added `--packages` option to all sub commands. It defaults to null, though the
