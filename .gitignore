@@ -17,3 +17,4 @@ pubspec.lock
 
 # Do not include intellij stuff
 .idea
+dart-coveralls.iml
