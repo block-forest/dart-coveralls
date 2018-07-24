@@ -60,8 +60,7 @@ class CommandLineClient {
       int retry: 0,
       bool excludeTestFiles: false,
       bool printJson}) async {
-    var rawLcov = await getLcovResult(testFile,
-        processSystem: processSystem);
+    var rawLcov = await getLcovResult(testFile, processSystem: processSystem);
 
     if (rawLcov == null) {
       print("Nothing to collect: Connection to VM service timed out. "

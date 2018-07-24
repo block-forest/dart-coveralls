@@ -20,8 +20,8 @@ class CoverallsEndpoint {
 
   MultipartRequest _getCoverallsRequest(String jsonString) {
     var req = new MultipartRequest("POST", coverallsAddress);
-    req.files.add(
-        new MultipartFile.fromString("json_file", jsonString, filename: "json_file"));
+    req.files.add(new MultipartFile.fromString("json_file", jsonString,
+        filename: "json_file"));
     return req;
   }
 

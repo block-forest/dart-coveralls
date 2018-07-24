@@ -19,11 +19,13 @@ class PackageFilter {
       {this.excludeTestFiles: false});
 
   PackageFilter.from(String projectDirectory,
-      {this.excludeTestFiles: false, FileSystem fileSystem: const LocalFileSystem()})
+      {this.excludeTestFiles: false,
+      FileSystem fileSystem: const LocalFileSystem()})
       : packageName = getPackageName(projectDirectory, fileSystem),
         dartFiles = new PackageDartFiles.from(projectDirectory);
 
-  bool accept(String fileName, [FileSystem fileSystem = const LocalFileSystem()]) {
+  bool accept(String fileName,
+      [FileSystem fileSystem = const LocalFileSystem()]) {
     log.info("ANALYZING $fileName");
 
     if (fileName.startsWith(packageName)) {
@@ -50,8 +52,7 @@ class PackageFilter {
   /// parses for the top level attribute name, which it then returns.
   static String getPackageName(String projectDirectory,
       [FileSystem fileSystem = const LocalFileSystem()]) {
-    var pubspecFile =
-        fileSystem.file(p.join(projectDirectory, "pubspec.yaml"));
+    var pubspecFile = fileSystem.file(p.join(projectDirectory, "pubspec.yaml"));
     var pubspecContent = pubspecFile.readAsStringSync();
     var yaml = loadYaml(pubspecContent);
     return yaml["name"];
@@ -247,7 +248,8 @@ class CoverallsReport {
   static CoverallsReport parse(
       String repoToken, LcovDocument lcov, String projectDirectory,
       {String serviceName, String serviceJobId, bool excludeTestFiles: false}) {
-    var gitData = GitData.getGitData(const LocalFileSystem().directory(projectDirectory));
+    var gitData =
+        GitData.getGitData(const LocalFileSystem().directory(projectDirectory));
     var reports = SourceFileReports.parse(lcov, projectDirectory,
         excludeTestFiles: excludeTestFiles);
     return new CoverallsReport(repoToken, reports, gitData,
