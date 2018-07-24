@@ -3,6 +3,7 @@ dart-coveralls
 
 [![Build Status](https://travis-ci.org/block-forest/dart-coveralls.svg?branch=master)](https://travis-ci.org/block-forest/dart-coveralls)
 [![Coverage Status](https://coveralls.io/repos/github/block-forest/dart-coveralls/badge.svg?branch=master)](https://coveralls.io/github/block-forest/dart-coveralls?branch=master)
+[![Pub](https://img.shields.io/pub/v/dart_coveralls.svg)](https://pub.dartlang.org/packages/dart_coveralls)
 
 Calculate coverage of your dart scripts, format it to LCOV and send it to
 [coveralls.io](https://coveralls.io/).
