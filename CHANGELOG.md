@@ -1,3 +1,7 @@
+### 0.6.0+3
+
+* Dart 2 fixes.
+
 ### 0.6.0+2
 
 * Dart SDK constraint updated to <3.0.0.
