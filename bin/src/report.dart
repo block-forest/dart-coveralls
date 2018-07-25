@@ -37,7 +37,6 @@ class ReportPart extends CommandLinePart {
     var throwOnConnectivityError = res["throw-on-connectivity-error"];
     var excludeTestFiles = res["exclude-test-files"];
     var printJson = res["print-json"];
-    var previewDart2 = res["preview-dart-2"];
 
     CoverallsResult result = await Chain.capture(() async {
       var commandLineClient = getCommandLineClient(res);
@@ -50,8 +49,7 @@ class ReportPart extends CommandLinePart {
           retry: retry,
           throwOnConnectivityError: throwOnConnectivityError,
           excludeTestFiles: excludeTestFiles,
-          printJson: printJson,
-          previewDart2: previewDart2);
+          printJson: printJson);
     }, onError: errorFunction);
 
     if (result != null) {
@@ -98,8 +96,6 @@ ArgParser _initializeParser() {
     ..addFlag("print-json",
         abbr: 'p',
         help: "Pretty-print the json that will be sent to coveralls.",
-        negatable: false)
-    ..addFlag("preview-dart-2",
-        help: "Runs code coverage in Dart 2.", negatable: false);
+        negatable: false);
   return CommandLinePart.addCommonOptions(parser);
 }

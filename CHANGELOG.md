@@ -1,3 +1,7 @@
+### unreleased
+
+* Support for `--preview-dart-2` removed and SDK lower bound bumped to `2.0.0-dev.64.1`.
+
 ### 0.6.0+3
 
 * Dart 2 fixes.

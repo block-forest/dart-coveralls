@@ -113,7 +113,8 @@ void main() {
       ];
 
       var fsMock = new FileSystemMock();
-      when(fsMock.file("/home/user/dart/dart_coveralls/test/test.dart")).thenReturn(testFiles.first);
+      when(fsMock.file("/home/user/dart/dart_coveralls/test/test.dart"))
+          .thenReturn(testFiles.first);
       var packageFilter = new PackageFilter(
           "dart_coveralls", new PackageDartFiles(testFiles, implFiles));
       var noTestFilter = new PackageFilter(
@@ -209,8 +210,10 @@ void main() {
         when(fileMock.existsSync()).thenReturn(false);
         when(dirMock.path).thenReturn(".");
         when(fileSystem.file("dart_coveralls/test.file")).thenReturn(fileMock);
-        when(fileSystem.file("./packages/dart_coveralls/test.file")).thenReturn(fileMock);
-        when(fileMock.resolveSymbolicLinksSync()).thenReturn("resolvedFile.dart");
+        when(fileSystem.file("./packages/dart_coveralls/test.file"))
+            .thenReturn(fileMock);
+        when(fileMock.resolveSymbolicLinksSync())
+            .thenReturn("resolvedFile.dart");
         when(fileSystem.file("resolvedFile.dart")).thenReturn(resolvedFile);
         when(resolvedFile.absolute).thenReturn(resolvedFile);
 

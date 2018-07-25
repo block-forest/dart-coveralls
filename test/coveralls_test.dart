@@ -54,7 +54,7 @@ void main() {
       var mockDir = new DirectoryMock();
       var args = ["remote", "-v"];
       when(mockDir.path).thenReturn(".");
-      when(processSystem.runProcessSync( "git", args)).thenReturn(processResult);
+      when(processSystem.runProcessSync("git", args)).thenReturn(processResult);
       when(processResult.stdout).thenReturn(
           "origin\tgit@github.com:Adracus/dart-coveralls.git (fetch)\n" +
               "origin\tgit@github.com:Adracus/dart-coveralls.git (push)");

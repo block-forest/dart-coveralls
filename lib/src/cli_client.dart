@@ -30,13 +30,11 @@ class CommandLineClient {
   }
 
   Future<String> getLcovResult(String testFile,
-      {ProcessSystem processSystem: const ProcessSystem(),
-      bool previewDart2: false}) {
+      {ProcessSystem processSystem: const ProcessSystem()}) {
     var collector = new LcovCollector(
         packageRoot: packageRoot,
         packagesPath: packagesPath,
-        processSystem: processSystem,
-        previewDart2: previewDart2);
+        processSystem: processSystem);
     return collector.getLcovInformation(testFile);
   }
 
@@ -61,10 +59,8 @@ class CommandLineClient {
       bool throwOnConnectivityError: false,
       int retry: 0,
       bool excludeTestFiles: false,
-      bool printJson,
-      bool previewDart2: false}) async {
-    var rawLcov = await getLcovResult(testFile,
-        processSystem: processSystem, previewDart2: previewDart2);
+      bool printJson}) async {
+    var rawLcov = await getLcovResult(testFile, processSystem: processSystem);
 
     if (rawLcov == null) {
       print("Nothing to collect: Connection to VM service timed out. "
