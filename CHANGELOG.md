@@ -1,5 +1,6 @@
-### unreleased
+### 0.6.0+4
 
+* Fixed parser to ignore lines that are not `DA` line coverage entries.
 * Support for `--preview-dart-2` removed and SDK lower bound bumped to `2.0.0-dev.64.1`.
 
 ### 0.6.0+3
