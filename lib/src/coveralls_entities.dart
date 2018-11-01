@@ -177,6 +177,9 @@ class Coverage {
     List<LineValue> values = [];
     var current = 1;
     for (int i = 0; i < numeration.length; i++) {
+      if (!numeration[i].contains('DA')) {
+        continue;
+      }
       var lineValue = LineValue.parse(numeration[i]);
       int distance = lineValue.lineNumber - values.length - 1;
       if (distance > 0)
